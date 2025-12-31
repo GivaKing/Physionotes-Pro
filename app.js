@@ -232,13 +232,12 @@ const renderSummary = ()=>{
   $("#s-pain-scale").textContent = `${visit.vasNow??"-"} / ${visit.vasMax??"-"}`;
 };
 
-// [修改] 刪除個案功能
+// [新增] 刪除個案
 const deleteCase = (caseId) => {
   if(!confirm("確定要刪除此個案？此動作無法復原。")) return;
   const lib = loadLib();
   delete lib[caseId];
   saveLib(lib);
-  // 如果刪除的是當前個案，清除暫存
   if(window.getCurrentCaseId() === caseId) {
     setCurrentCaseId(null);
     window.location.reload();
@@ -340,6 +339,7 @@ const renderTimeline = (item)=>{
     const chip = document.createElement("div");
     chip.className = "t-chip" + (i===idx ? " active" : "");
     let label = `第 ${i+1} 次`;
+    // 多主訴功能：如果不適部位有填，顯示在 Timeline 上
     if(r.therapist?.bodyParts && r.therapist.bodyParts.length > 0) label += ` (${r.therapist.bodyParts[0]}...)`;
     chip.textContent = label;
     chip.onclick = ()=>{
@@ -482,16 +482,17 @@ document.addEventListener("DOMContentLoaded", ()=>{
   $("input,textarea").forEach(el=>el.addEventListener("input", triggerAutoSave));
   $("#case-search")?.addEventListener("input", renderCaseList);
   $("#btn-clear")?.addEventListener("click", ()=>{ if(confirm("清除暫存？")) { localStorage.clear(); location.reload(); }});
+  
+  // [修改] 個案頁「交給治療師」-> 跳轉
   $("#btn-goto-therapist")?.addEventListener("click", ()=>{ const res = upsertCurrentCaseAndRecord({ markDone:false }); if(res) switchTab("therapist"); });
   
-  // [修改] 完成評估不跳頁
+  // [修改] 治療師頁「完成評估」-> 儲存但不跳頁
   $("#btn-mark-done")?.addEventListener("click", async ()=>{ 
     const res = upsertCurrentCaseAndRecord({ markDone:true }); 
     if(res) { 
       showToast("同步中...", "info"); 
       await syncCaseToSupabase(); 
       showToast("✅ 評估已完成並同步！", "success");
-      // 不再 switchTab("cases");
     }
   });
   $("#btn-back-client")?.addEventListener("click", ()=>switchTab("client"));
