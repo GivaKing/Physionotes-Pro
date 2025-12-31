@@ -59,14 +59,10 @@ async function handleAuthSubmit(){
       if (error) throw error;
       const ok = await guardRoleOrBlock();
       if (!ok) return;
-      
-      // 注意：這裡假設 clearLocalDraft 是全局函數或掛在 window 上，否則需在 app.js 初始化
       if(window.clearLocalDraft) window.clearLocalDraft();
-      
       showApp();
       await renderUserChip();
       if(window.syncPatientsFromSupabase) await window.syncPatientsFromSupabase();
-      if(window.subscribePatientsRealtime) window.subscribePatientsRealtime();
     } else {
       if (document.getElementById("agree-terms") && !document.getElementById("agree-terms").checked) {
         authError.textContent = "請先閱讀並同意註冊須知。";
@@ -99,7 +95,7 @@ async function getMyProfile(){
   const { data: userResult } = await sb.auth.getUser();
   const user = userResult?.user;
   if (!user) return null;
-  const { data, error } = await sb.from("profiles").select("role, trial_patient_limit").eq("user_id", user.id).maybeSingle();
+  const { data, error } = await sb.from("profiles").select("role").eq("user_id", user.id).maybeSingle();
   if (error) return null;
   return data || null;
 }
@@ -119,8 +115,6 @@ async function guardRoleOrBlock() {
     showLogin();
     return false;
   }
-  window.__role = profile.role;
-  window.__profile = profile;
   return true;
 }
 
@@ -138,22 +132,28 @@ async function renderUserChip(){
   chip.classList.remove("hidden");
 }
 
-// User menu logic
-window.toggleUserMenu = () => document.getElementById("user-menu")?.classList.toggle("hidden");
-window.openUserMenu = () => document.getElementById("user-menu")?.classList.remove("hidden");
-window.closeUserMenu = () => setTimeout(()=>document.getElementById("user-menu")?.classList.add("hidden"), 300);
-window.logoutFromMenu = () => { document.getElementById("user-menu")?.classList.add("hidden"); document.getElementById("btn-logout")?.click(); };
+window.toggleUserMenu = () => {
+  const menu = document.getElementById("user-menu");
+  menu.classList.toggle("active");
+};
+
+window.openUserMenu = () => document.getElementById("user-menu")?.classList.add("active");
+window.closeUserMenu = () => setTimeout(()=>document.getElementById("user-menu")?.classList.remove("active"), 300);
+
+window.logoutFromMenu = () => { 
+  document.getElementById("user-menu")?.classList.remove("active"); 
+  if (window.logout) window.logout(); 
+};
 
 window.openProfileDrawer = async () => {
-  document.getElementById("user-menu")?.classList.add("hidden");
+  document.getElementById("user-menu")?.classList.remove("active");
   document.getElementById("profile-drawer")?.classList.remove("hidden");
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return;
   document.getElementById("profile-email").value = user.email || "";
-  const { data } = await sb.from("profiles").select("name, job, trial_patient_limit").eq("user_id", user.id).maybeSingle();
+  const { data } = await sb.from("profiles").select("name, job").eq("user_id", user.id).maybeSingle();
   document.getElementById("profile-name").value = data?.name || "";
   document.getElementById("profile-job").value = data?.job || "";
-  document.getElementById("profile-trial_patient_limit").value = data?.trial_patient_limit ?? "-";
 };
 window.closeProfileDrawer = () => document.getElementById("profile-drawer")?.classList.add("hidden");
 window.saveProfile = async () => {
@@ -171,19 +171,24 @@ window.saveProfile = async () => {
 };
 window.onDrawerMaskClick = (e) => { if(e.target.id === "profile-drawer") closeProfileDrawer(); };
 
-// Bind Auth Events
+window.openTermsWindow = () => document.getElementById("terms-modal")?.classList.remove("hidden");
+window.closeTermsModal = () => document.getElementById("terms-modal")?.classList.add("hidden");
+
 if (tabLogin) tabLogin.addEventListener("click", () => setAuthMode("login"));
 if (tabSignup) tabSignup.addEventListener("click", () => setAuthMode("signup"));
 if (btnAuth) btnAuth.addEventListener("click", handleAuthSubmit);
 if (pwInput) pwInput.addEventListener("keydown", (e)=>{ if (e.key === "Enter") handleAuthSubmit(); });
-if (btnTogglePw) btnTogglePw.addEventListener("click", ()=>{ pwInput.type = (pwInput.type === "password") ? "text" : "password"; });
-if (btnLogout) btnLogout.addEventListener("click", async () => {
-  if (window.clearLocalDraft) window.clearLocalDraft();
-  await sb.auth.signOut();
-  showLogin();
+if (btnTogglePw) btnTogglePw.addEventListener("click", ()=>{ 
+  pwInput.type = (pwInput.type === "password") ? "text" : "password"; 
 });
 
-// Init
+// Global Logout Function
+window.logout = async () => {
+  if (window.clearLocalDraft) window.clearLocalDraft(); 
+  await sb.auth.signOut();
+  showLogin();
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
   const { data } = await sb.auth.getSession();
   if (!data?.session) { showLogin(); return; }
@@ -192,6 +197,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     showApp();
     await renderUserChip();
     if(window.syncPatientsFromSupabase) await window.syncPatientsFromSupabase();
-    if(window.subscribePatientsRealtime) window.subscribePatientsRealtime();
   }
 });
