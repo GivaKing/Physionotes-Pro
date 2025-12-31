@@ -14,36 +14,32 @@
 body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 80px; }
 .app { max-width: 800px; margin: 0 auto; padding: 16px; }
 
-/* Header & Tabs */
+/* === Header === */
 .title { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #1e293b; }
 .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; background: var(--primary); color: white; font-weight: 600; }
+.title-right { margin-left: auto; display: flex; align-items: center; gap: 10px; position: relative; }
+
+/* === User Chip === */
+.user-chip-wrap { position: relative; z-index: 50; }
+.user-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--border); background: white; border-radius: 99px; font-size: 0.85rem; cursor: pointer; color: var(--text); }
+.user-dot { width: 8px; height: 8px; border-radius: 99px; background: var(--success); }
+.user-menu { position: absolute; right: 0; top: 110%; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); padding: 8px; width: 160px; display: none; border: 1px solid var(--border); }
+.user-menu.active { display: block; }
+.user-menu button { width: 100%; background: none; border: none; padding: 8px 10px; text-align: left; cursor: pointer; border-radius: 6px; font-size: 0.9rem; color: var(--text); }
+.user-menu button:hover { background: #f1f5f9; }
+
+/* === Tabs === */
 .tabs { display: flex; background: #e2e8f0; border-radius: 99px; padding: 4px; margin-bottom: 20px; }
 .tab-btn { flex: 1; border: none; padding: 10px; border-radius: 99px; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-/* Card & Sections */
-.card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border); }
-.section-title { font-size: 1rem; font-weight: 700; margin: 24px 0 12px; color: #334155; display: flex; align-items: center; justify-content: space-between; }
-.section-title span { font-size: 0.8rem; color: var(--muted); font-weight: 400; text-transform: uppercase; letter-spacing: 0.5px; }
-.divider { height: 1px; background: var(--border); margin: 24px 0; }
-
-/* Forms */
-.row { margin-bottom: 12px; }
-label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
-input[type="text"], input[type="number"], input[type="date"], select, textarea {
-  width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
-  font-size: 0.95rem; background: #f8fafc; transition: border 0.2s; outline: none;
-}
-input:focus, select:focus, textarea:focus { border-color: var(--primary); background: white; }
-textarea { min-height: 80px; resize: vertical; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-/* Auth Screen - 修正眼睛定位 */
+/* === Auth Screen (Eye Fix) === */
 .auth-screen-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f1f5f9; }
 .auth-card { width: 100%; max-width: 400px; background: white; padding: 32px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
 .auth-input-wrap { position: relative; width: 100%; }
-.auth-input { width: 100%; padding-right: 40px; } /* 預留空間給眼睛 */
-.auth-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; color: #64748b; padding: 4px; display: flex; align-items: center; }
+.auth-input { width: 100%; padding: 10px 14px; padding-right: 40px; border-radius: 99px; border: 1px solid #d1d5db; font-size: 0.9rem; background: #f9fafb; }
+/* 眼睛絕對定位，確保在輸入框內 */
+.auth-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; cursor: pointer; color: #64748b; padding: 4px; display: flex; align-items: center; z-index: 5; }
 .auth-tabs { display: flex; background: #f3f4f6; padding: 4px; border-radius: 99px; margin-bottom: 20px; }
 .auth-tab { flex: 1; padding: 8px; border: none; background: transparent; border-radius: 99px; cursor: pointer; font-weight: 600; color: var(--muted); }
 .auth-tab.active { background: var(--primary); color: white; }
@@ -51,31 +47,26 @@ textarea { min-height: 80px; resize: vertical; }
 .signup-only { display: none; }
 .auth-card.signup .signup-only { display: block; }
 
-/* User Chip & Menu - 修正選單 */
-.title-right { margin-left: auto; display: flex; align-items: center; gap: 10px; position: relative; }
-.user-chip-wrap { position: relative; z-index: 50; }
-.user-chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--border); background: white; border-radius: 99px; font-size: 0.85rem; cursor: pointer; }
-.user-dot { width: 8px; height: 8px; border-radius: 99px; background: var(--success); }
-.user-menu { position: absolute; right: 0; top: 110%; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); padding: 8px; width: 160px; display: none; }
-.user-menu.active { display: block; }
-.user-menu button { width: 100%; background: none; border: none; padding: 8px 10px; text-align: left; cursor: pointer; border-radius: 6px; font-size: 0.9rem; }
-.user-menu button:hover { background: #f1f5f9; }
-
-/* Subtabs */
+/* === Subtabs === */
 .subtabs { display: flex; gap: 8px; padding: 4px; background: #f1f5f9; border-radius: 12px; margin-bottom: 16px; overflow-x: auto; }
 .subtab-btn { flex: 1; border: none; background: transparent; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--muted); white-space: nowrap; }
 .subtab-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 .client-subpage, .therapist-subpage { display: none; }
 .client-subpage.active, .therapist-subpage.active { display: block; animation: fadeIn 0.2s ease-out; }
 
-/* Pain List */
-.pain-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; border: 1px solid #bae6fd; font-size: 0.9rem; }
-.pain-item span { font-weight: 600; color: #0369a1; }
-.btn-del-pain { border: none; background: transparent; color: #ef4444; font-weight: bold; cursor: pointer; padding: 0 8px; }
+/* === General UI === */
+.card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border); }
+.section-title { font-size: 1rem; font-weight: 700; margin: 24px 0 12px; color: #334155; display: flex; align-items: center; justify-content: space-between; }
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row { margin-bottom: 12px; }
+label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+input:not(.auth-input), select, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #f9fafb; font-size: 0.9rem; }
+textarea { min-height: 80px; resize: vertical; }
 
-/* Chips */
+/* === Features === */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { padding: 6px 12px; border-radius: 99px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.chip { padding: 6px 12px; border-radius: 99px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
 .chip.selected { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); font-weight: 600; }
 .pill-toggle-group { display: flex; gap: 4px; background: #f1f5f9; padding: 3px; border-radius: 8px; width: fit-content; }
 .pill-toggle { padding: 6px 12px; border-radius: 6px; border: none; background: transparent; color: var(--muted); font-size: 0.85rem; cursor: pointer; }
@@ -89,9 +80,14 @@ textarea { min-height: 80px; resize: vertical; }
 .rom-input.high { color: var(--primary); background: #eff6ff; }
 .rom-input.low { color: #d97706; background: #fffbeb; }
 
+/* Pain List */
+.pain-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; border: 1px solid #bae6fd; font-size: 0.9rem; }
+.pain-item span { font-weight: 600; color: #0369a1; }
+.btn-del-pain { border: none; background: transparent; color: #ef4444; font-weight: bold; cursor: pointer; padding: 0 8px; }
+
 /* Case Cards */
 .case-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
-.case-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; position: relative; }
+.case-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: 0.2s; position: relative; }
 .case-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(37,99,235,0.1); transform: translateY(-2px); }
 .cc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
 .cc-name { font-weight: 700; font-size: 1.1rem; color: #1e293b; }
@@ -105,6 +101,7 @@ textarea { min-height: 80px; resize: vertical; }
 /* Sticky Footer */
 .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); padding: 12px 16px; border-top: 1px solid var(--border); z-index: 10; max-width: 800px; margin: 0 auto; }
 .btn-row { display: flex; gap: 12px; }
+.btn { flex: 1; padding: 12px; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; font-size: 1rem; }
 .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
 .btn-success { background: var(--success); color: white; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
 .btn-outline { background: white; border: 1px solid var(--border); color: var(--muted); }
@@ -112,7 +109,7 @@ textarea { min-height: 80px; resize: vertical; }
 
 /* Toast */
 .toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: max-content; pointer-events: none; }
-.toast { background: rgba(15,23,42,0.95); color: white; padding: 10px 20px; border-radius: 99px; font-size: 0.9rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); transition: all 0.3s; display: flex; align-items: center; gap: 8px; pointer-events: auto; }
+.toast { background: rgba(15,23,42,0.95); color: white; padding: 10px 20px; border-radius: 99px; font-size: 0.9rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); transition: 0.3s; display: flex; align-items: center; gap: 8px; pointer-events: auto; }
 .toast.show { opacity: 1; transform: translateY(0); }
 
 /* Utilities */
