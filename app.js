@@ -4,7 +4,9 @@ function showToast(msg, type="info") {
   if(!container) return;
   const el = document.createElement("div");
   el.className = `toast ${type}`;
-  el.innerHTML = `<span>${type==="success"?"✅":"ℹ️"}</span><span>${msg}</span>`;
+  let icon = "ℹ️";
+  if(type==="success") icon="✅"; else if(type==="error") icon="❌";
+  el.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
   container.appendChild(el);
   requestAnimationFrame(() => el.classList.add("show"));
   setTimeout(() => {
@@ -13,12 +15,12 @@ function showToast(msg, type="info") {
   }, 3000);
 }
 
-// === Constants ===
+// === Constants & ROM Data ===
 const STORAGE = {
-  client: "pt_client_v4",
-  therapist: "pt_therapist_v4",
-  library: "pt_library_v4",
-  visit: "pt_visit_v4",
+  client: "pt_client_v5",
+  therapist: "pt_therapist_v5",
+  library: "pt_library_v5",
+  visit: "pt_visit_v5",
   currentCaseId: "pt_case_id",
   recordIdx: "pt_rec_idx"
 };
@@ -111,16 +113,12 @@ const collectTherapist = ()=>{
     const k = w.getAttribute("data-field-pt");
     d[k] = $$(".chip.selected", w).map(c=>c.getAttribute("data-value"));
   });
-  // Collect ROM inputs
   $$(".rom-input").forEach(el => {
     const key = el.dataset.romKey;
     if(key && el.value) d[key] = el.value;
   });
-  // Collect Subjective Pain Parts (from local storage or current DOM if we added dynamic inputs, but usually we save on add)
-  // For now, assume it's saved in therapist object via renderPainList/saveTherapist loop
   const t = loadTherapist();
   if(t.painParts) d.painParts = t.painParts;
-  
   return d;
 };
 
@@ -183,38 +181,29 @@ const renderTherapistUI = (d)=>{
     const set = new Set(d[k]||[]);
     $$(".chip", w).forEach(c=>c.classList.toggle("selected", set.has(c.getAttribute("data-value"))));
   });
-  // Reset dynamic areas
   $("#rom-dynamic-container").innerHTML = `<div class="hint">請選擇關節以檢視數據。</div>`;
   $("#rom-joint-select").value = "";
-  
-  // Render Pain List
   renderPainList(d.painParts || []);
-
   const visit = loadVisit();
   if($("#pain-now")) $("#pain-now").value = visit.vasNow ?? "";
   if($("#pain-max")) $("#pain-max").value = visit.vasMax ?? "";
 };
 
-// === New Feature: Pain Part List ===
+// Pain List Logic
 function addPainPart() {
   const partSelect = $("#pain-part-select");
   const vasInput = $("#pain-part-vas");
   const part = partSelect.value;
   const vas = vasInput.value;
-
   if(!part || !vas) { alert("請選擇部位並填寫 VAS"); return; }
-
   const t = loadTherapist();
   const list = t.painParts || [];
   list.push({ part, vas });
   t.painParts = list;
   saveTherapist(t);
-  
   renderPainList(list);
-  partSelect.value = "";
-  vasInput.value = "";
+  partSelect.value = ""; vasInput.value = "";
 }
-
 function deletePainPart(idx) {
   const t = loadTherapist();
   const list = t.painParts || [];
@@ -223,18 +212,14 @@ function deletePainPart(idx) {
   saveTherapist(t);
   renderPainList(list);
 }
-
 function renderPainList(list) {
   const container = $("#pain-part-list");
   if(!container) return;
   container.innerHTML = "";
   list.forEach((item, idx) => {
-    const div = document.createElement("div");
-    div.className = "pain-item";
+    const div = document.createElement("div"); div.className = "pain-item";
     div.innerHTML = `<div><span>${item.part}</span>: VAS ${item.vas}</div>`;
-    const btn = document.createElement("button");
-    btn.className = "btn-del-pain";
-    btn.textContent = "✕";
+    const btn = document.createElement("button"); btn.className = "btn-del-pain"; btn.textContent = "✕";
     btn.onclick = () => deletePainPart(idx);
     div.appendChild(btn);
     container.appendChild(div);
@@ -318,17 +303,11 @@ const renderCaseList = ()=>{
     if(kw && !(c.name + (c.mainComplaint||"")).toLowerCase().includes(kw)) return;
     count++;
     const card = document.createElement("div"); card.className = "case-card";
-    
-    // VAS badge color
     let badgeClass = "mid";
     if(vas <= 3) badgeClass = "low"; else if(vas >= 7) badgeClass = "";
     const vasHtml = vas != null ? `<span class="vas-badge ${badgeClass}">VAS ${vas}</span>` : `<span style="color:#cbd5e1;font-size:0.75rem">No VAS</span>`;
-    
     card.innerHTML = `
-      <div class="cc-header">
-        <div class="cc-name">${c.name || "未命名"}</div>
-        ${vasHtml}
-      </div>
+      <div class="cc-header"><div class="cc-name">${c.name || "未命名"}</div>${vasHtml}</div>
       <div class="cc-sub">${c.gender||""} ${c.dob ? calculateAge(c.dob)+"歲" : ""} ${c.job ? "· "+c.job : ""}</div>
       <div class="cc-body">${c.mainComplaint || "無主訴紀錄"}</div>
       <div class="cc-footer">
@@ -336,14 +315,9 @@ const renderCaseList = ()=>{
         <span>${new Date(lastRec.updatedAt).toLocaleDateString()}</span>
         <button class="btn-icon btn-danger" title="刪除" style="margin-left:auto;z-index:2;">🗑</button>
       </div>`;
-    
     card.onclick = (e) => {
-      if(e.target.closest(".btn-danger")) {
-        e.stopPropagation();
-        deleteCase(id);
-      } else {
-        openCase(id);
-      }
+      if(e.target.closest(".btn-danger")) { e.stopPropagation(); deleteCase(id); }
+      else { openCase(id); }
     };
     list.appendChild(card);
   });
@@ -365,7 +339,7 @@ function openCase(caseId){
   renderTimeline(item);
   renderSummary();
   if(window.renderVasChart) window.renderVasChart();
-  // Redirect to Client page when opening case
+  // 強制跳轉至 Client 頁面
   switchTab("client");
   switchSubTab("client", "overview");
 }
@@ -395,7 +369,6 @@ const renderTimeline = (item)=>{
     const chip = document.createElement("div");
     chip.className = "t-chip" + (i===idx ? " active" : "");
     let label = `第 ${i+1} 次`;
-    // If pain parts exist, show summary
     if(r.therapist?.painParts && r.therapist.painParts.length > 0) label += ` (${r.therapist.painParts[0].part}...)`;
     chip.textContent = label;
     chip.onclick = ()=>{
@@ -516,48 +489,54 @@ const triggerAutoSave = () => { clearTimeout(autoSaveTimer); autoSaveTimer = set
   if(active==="page-therapist") saveTherapist(collectTherapist());
 }, 800); };
 
+// DOM Content Loaded (Button Bindings Fix)
 document.addEventListener("DOMContentLoaded", ()=>{
   $$(".tab-btn").forEach(b=>b.addEventListener("click", ()=>switchTab(b.dataset.target.replace("page-",""))));
   $$("#client-subtabs .subtab-btn").forEach(b=>b.addEventListener("click", ()=>switchSubTab("client", b.dataset.sub)));
   $$("#therapist-subtabs .subtab-btn").forEach(b=> {
-    b.addEventListener("click", ()=> {
-      switchSubTab("therapist", b.dataset.sub);
-    });
+    b.addEventListener("click", ()=> { switchSubTab("therapist", b.dataset.sub); });
   });
   
-  // Pain Part Add Button
   $("#btn-add-pain-part")?.addEventListener("click", addPainPart);
-
   $("#dob")?.addEventListener("change", (e)=>{ $("#calculated-age").textContent = calculateAge(e.target.value) + " 歲"; triggerAutoSave(); });
   $("#rom-joint-select")?.addEventListener("change", (e)=>{ renderRomInputs(e.target.value); });
+  
   document.addEventListener("click", (e)=>{
     if(e.target.closest(".pill-toggle")){ const btn = e.target.closest(".pill-toggle"); const group = btn.closest(".pill-toggle-group"); $$(".pill-toggle", group).forEach(x=>x.classList.remove("active")); btn.classList.add("active"); triggerAutoSave(); renderSummary(); }
     if(e.target.closest(".chip")){ const chip = e.target.closest(".chip"); if(chip.classList.contains("insert-btn")) return; chip.classList.toggle("selected"); triggerAutoSave(); renderSummary(); }
     if(e.target.closest(".insert-btn")){ const btn = e.target.closest(".insert-btn"); const el = document.getElementById(btn.dataset.target); if(el) { el.value = el.value + " " + btn.dataset.insert; triggerAutoSave(); } }
   });
+  
   $("input,textarea").forEach(el=>el.addEventListener("input", triggerAutoSave));
   $("#case-search")?.addEventListener("input", renderCaseList);
   
-  // Correctly bind button events using getElementById
+  // === CRITICAL FIX: Explicit Button Binding ===
   const btnClear = document.getElementById("btn-clear");
-  if(btnClear) btnClear.addEventListener("click", ()=>{ if(confirm("清除暫存？")) { localStorage.clear(); location.reload(); }});
+  if(btnClear) btnClear.onclick = ()=>{ if(confirm("清除暫存？")) { localStorage.clear(); location.reload(); }};
   
   const btnGoTherapist = document.getElementById("btn-goto-therapist");
-  if(btnGoTherapist) btnGoTherapist.addEventListener("click", ()=>{ const res = upsertCurrentCaseAndRecord({ markDone:false }); if(res) switchTab("therapist"); });
+  if(btnGoTherapist) btnGoTherapist.onclick = ()=>{ 
+    const res = upsertCurrentCaseAndRecord({ markDone:false }); 
+    if(res) {
+      switchTab("therapist");
+      switchSubTab("therapist", "subjective");
+    }
+  };
   
   const btnMarkDone = document.getElementById("btn-mark-done");
-  if(btnMarkDone) btnMarkDone.addEventListener("click", async ()=>{ 
+  if(btnMarkDone) btnMarkDone.onclick = async ()=>{ 
     const res = upsertCurrentCaseAndRecord({ markDone:true }); 
     if(res) { 
       showToast("同步中...", "info"); 
       await syncCaseToSupabase(); 
       showToast("✅ 評估已完成並同步！", "success");
     }
-  });
+  };
   
   const btnBackClient = document.getElementById("btn-back-client");
-  if(btnBackClient) btnBackClient.addEventListener("click", ()=>switchTab("client"));
+  if(btnBackClient) btnBackClient.onclick = ()=>switchTab("client");
 
+  // Init
   renderClientUI(loadClient());
   renderTherapistUI(loadTherapist());
   renderSummary();
