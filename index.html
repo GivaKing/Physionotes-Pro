@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>PhysioNotes Professional</title>
-  
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩺</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -33,7 +33,12 @@
         <label class="auth-label" for="auth-password">密碼</label>
         <div class="auth-input-wrap">
           <input id="auth-password" type="password" class="auth-input" placeholder="至少 6 碼" autocomplete="current-password">
-          <button type="button" class="auth-eye" id="btn-toggle-pw" aria-label="顯示/隱藏密碼">👁️</button>
+          <button type="button" class="auth-eye" id="btn-toggle-pw" aria-label="顯示/隱藏密碼">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -69,14 +74,14 @@
         PhysioNotes <span class="badge">Pro</span>
         <div class="title-right">
           <div class="user-chip-wrap">
-            <button id="user-chip" class="user-chip hidden" onclick="window.toggleUserMenu()">
+            <button id="user-chip" class="user-chip hidden">
               <span class="user-dot"></span>
               <span id="user-text" class="user-text">User</span>
               <span class="user-arrow">▼</span>
             </button>
             <div id="user-menu" class="user-menu hidden">
-              <button onclick="openProfileDrawer()">👤 個人資料</button>
-              <button onclick="logoutFromMenu()">➜ 登出帳號</button>
+              <button onclick="window.openProfileDrawer()">👤 個人資料</button>
+              <button onclick="window.logout()">➜ 登出帳號</button>
             </div>
           </div>
         </div>
@@ -279,6 +284,7 @@
                <button type="button" class="chip insert-btn" data-target="reasoning" data-insert="→">→</button>
                <button type="button" class="chip insert-btn" data-target="reasoning" data-insert="2° to">2° to</button>
                <button type="button" class="chip insert-btn" data-target="reasoning" data-insert="LBP">LBP</button>
+               <button type="button" class="chip insert-btn" data-target="reasoning" data-insert="HIVD">HIVD</button>
              </div>
              <textarea id="reasoning" data-field-pt="reasoning"></textarea>
            </div>
@@ -302,26 +308,31 @@
         <div class="row">
           <input id="case-search" type="text" placeholder="🔍 搜尋姓名..." class="search-bar">
         </div>
+        
         <div class="case-stats-row">
           <span id="case-count">0 位個案</span>
-          <button id="btn-import-all" class="btn-text">匯入</button>
-          <button id="btn-export-all" class="btn-text">匯出</button>
+          <button id="btn-import-all" class="btn-text">匯入備份</button>
+          <button id="btn-export-all" class="btn-text">匯出備份</button>
           <input type="file" id="import-file" style="display:none;">
         </div>
+
         <div id="case-list" class="case-grid"></div>
       </div>
     </main>
   </div>
 
   <div id="toast-container" class="toast-container"></div>
+  
   <div id="profile-drawer" class="drawer hidden" onclick="onDrawerMaskClick(event)">
     <div class="drawer-panel">
       <div class="drawer-header"><h2>個人資料</h2><button class="drawer-close" onclick="closeProfileDrawer()">✕</button></div>
       <div class="auth-field"><label>Email</label><input id="profile-email" class="auth-input" disabled></div>
       <div class="auth-field"><label>姓名</label><input id="profile-name" class="auth-input"></div>
+      <div class="auth-field"><label>職業</label><input id="profile-job" class="auth-input"></div>
       <button class="btn-primary btn-save" onclick="saveProfile()">儲存</button>
     </div>
   </div>
+
   <div id="terms-modal" class="terms-modal hidden">
     <div class="terms-backdrop" onclick="closeTermsModal()"></div>
     <div class="terms-panel">
