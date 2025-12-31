@@ -15,12 +15,12 @@ function showToast(msg, type="info") {
   }, 3000);
 }
 
-// === Constants & ROM Data ===
+// === Constants ===
 const STORAGE = {
-  client: "pt_client_v5",
-  therapist: "pt_therapist_v5",
-  library: "pt_library_v5",
-  visit: "pt_visit_v5",
+  client: "pt_client_v6",
+  therapist: "pt_therapist_v6",
+  library: "pt_library_v6",
+  visit: "pt_visit_v6",
   currentCaseId: "pt_case_id",
   recordIdx: "pt_rec_idx"
 };
@@ -52,7 +52,6 @@ const resetVisit = ()=>saveVisit({ vasNow:null, vasMax:null });
 const loadLib = ()=>parse(localStorage.getItem(STORAGE.library),{});
 const saveLib = (d)=>localStorage.setItem(STORAGE.library,JSON.stringify(d||{}));
 
-// Globals
 window.loadLib = loadLib;
 window.getCurrentCaseId = ()=>localStorage.getItem(STORAGE.currentCaseId);
 const setCurrentCaseId = (id)=> id ? localStorage.setItem(STORAGE.currentCaseId,id) : localStorage.removeItem(STORAGE.currentCaseId);
@@ -183,13 +182,13 @@ const renderTherapistUI = (d)=>{
   });
   $("#rom-dynamic-container").innerHTML = `<div class="hint">請選擇關節以檢視數據。</div>`;
   $("#rom-joint-select").value = "";
+  
   renderPainList(d.painParts || []);
   const visit = loadVisit();
   if($("#pain-now")) $("#pain-now").value = visit.vasNow ?? "";
   if($("#pain-max")) $("#pain-max").value = visit.vasMax ?? "";
 };
 
-// Pain List Logic
 function addPainPart() {
   const partSelect = $("#pain-part-select");
   const vasInput = $("#pain-part-vas");
@@ -272,7 +271,6 @@ const renderSummary = ()=>{
   $("#s-pain-scale").textContent = `${visit.vasNow??"-"} / ${visit.vasMax??"-"}`;
 };
 
-// Delete Case
 const deleteCase = (caseId) => {
   if(!confirm("確定要刪除此個案？此動作無法復原。")) return;
   const lib = loadLib();
@@ -303,11 +301,16 @@ const renderCaseList = ()=>{
     if(kw && !(c.name + (c.mainComplaint||"")).toLowerCase().includes(kw)) return;
     count++;
     const card = document.createElement("div"); card.className = "case-card";
+    
     let badgeClass = "mid";
     if(vas <= 3) badgeClass = "low"; else if(vas >= 7) badgeClass = "";
     const vasHtml = vas != null ? `<span class="vas-badge ${badgeClass}">VAS ${vas}</span>` : `<span style="color:#cbd5e1;font-size:0.75rem">No VAS</span>`;
+    
     card.innerHTML = `
-      <div class="cc-header"><div class="cc-name">${c.name || "未命名"}</div>${vasHtml}</div>
+      <div class="cc-header">
+        <div class="cc-name">${c.name || "未命名"}</div>
+        ${vasHtml}
+      </div>
       <div class="cc-sub">${c.gender||""} ${c.dob ? calculateAge(c.dob)+"歲" : ""} ${c.job ? "· "+c.job : ""}</div>
       <div class="cc-body">${c.mainComplaint || "無主訴紀錄"}</div>
       <div class="cc-footer">
@@ -315,6 +318,7 @@ const renderCaseList = ()=>{
         <span>${new Date(lastRec.updatedAt).toLocaleDateString()}</span>
         <button class="btn-icon btn-danger" title="刪除" style="margin-left:auto;z-index:2;">🗑</button>
       </div>`;
+    
     card.onclick = (e) => {
       if(e.target.closest(".btn-danger")) { e.stopPropagation(); deleteCase(id); }
       else { openCase(id); }
@@ -339,7 +343,8 @@ function openCase(caseId){
   renderTimeline(item);
   renderSummary();
   if(window.renderVasChart) window.renderVasChart();
-  // 強制跳轉至 Client 頁面
+  
+  // === 修復跳轉邏輯 ===
   switchTab("client");
   switchSubTab("client", "overview");
 }
@@ -358,37 +363,6 @@ function addNewRecordForCurrentCase(){
   renderTimeline(item);
   showToast("已建立新回診紀錄", "success");
 }
-
-const renderTimeline = (item)=>{
-  const wrap = $("#pt-timeline");
-  if(!wrap) return;
-  wrap.innerHTML = "";
-  const recs = item.records || [];
-  const idx = getCurrentRecordIndex();
-  recs.forEach((r,i)=>{
-    const chip = document.createElement("div");
-    chip.className = "t-chip" + (i===idx ? " active" : "");
-    let label = `第 ${i+1} 次`;
-    if(r.therapist?.painParts && r.therapist.painParts.length > 0) label += ` (${r.therapist.painParts[0].part}...)`;
-    chip.textContent = label;
-    chip.onclick = ()=>{
-      setCurrentRecordIndex(i);
-      saveTherapist(r.therapist||{});
-      saveVisit(r.visit||{ vasNow:null, vasMax:null });
-      renderTherapistUI(loadTherapist());
-      renderClientUI(loadClient());
-      renderTimeline(item);
-      renderSummary();
-      if(window.renderVasChart) window.renderVasChart();
-    };
-    wrap.appendChild(chip);
-  });
-  const addBtn = document.createElement("div");
-  addBtn.className="t-chip"; addBtn.style.borderStyle = "dashed";
-  addBtn.textContent="+ 新增";
-  addBtn.onclick = addNewRecordForCurrentCase;
-  wrap.appendChild(addBtn);
-};
 
 const upsertCurrentCaseAndRecord = ({markDone=false}={})=>{
   const caseId = window.getCurrentCaseId();
@@ -489,54 +463,42 @@ const triggerAutoSave = () => { clearTimeout(autoSaveTimer); autoSaveTimer = set
   if(active==="page-therapist") saveTherapist(collectTherapist());
 }, 800); };
 
-// DOM Content Loaded (Button Bindings Fix)
+// === Use Event Delegation for Safe Button Binding ===
 document.addEventListener("DOMContentLoaded", ()=>{
+  // Tabs
   $$(".tab-btn").forEach(b=>b.addEventListener("click", ()=>switchTab(b.dataset.target.replace("page-",""))));
   $$("#client-subtabs .subtab-btn").forEach(b=>b.addEventListener("click", ()=>switchSubTab("client", b.dataset.sub)));
   $$("#therapist-subtabs .subtab-btn").forEach(b=> {
     b.addEventListener("click", ()=> { switchSubTab("therapist", b.dataset.sub); });
   });
   
+  // Feature Specific Listeners
   $("#btn-add-pain-part")?.addEventListener("click", addPainPart);
   $("#dob")?.addEventListener("change", (e)=>{ $("#calculated-age").textContent = calculateAge(e.target.value) + " 歲"; triggerAutoSave(); });
   $("#rom-joint-select")?.addEventListener("change", (e)=>{ renderRomInputs(e.target.value); });
   
+  // Delegation for dynamic elements
   document.addEventListener("click", (e)=>{
     if(e.target.closest(".pill-toggle")){ const btn = e.target.closest(".pill-toggle"); const group = btn.closest(".pill-toggle-group"); $$(".pill-toggle", group).forEach(x=>x.classList.remove("active")); btn.classList.add("active"); triggerAutoSave(); renderSummary(); }
     if(e.target.closest(".chip")){ const chip = e.target.closest(".chip"); if(chip.classList.contains("insert-btn")) return; chip.classList.toggle("selected"); triggerAutoSave(); renderSummary(); }
     if(e.target.closest(".insert-btn")){ const btn = e.target.closest(".insert-btn"); const el = document.getElementById(btn.dataset.target); if(el) { el.value = el.value + " " + btn.dataset.insert; triggerAutoSave(); } }
+    
+    // === Button Fixes (Delegation) ===
+    if(e.target.id === "btn-clear") { if(confirm("清除暫存？")) { localStorage.clear(); location.reload(); } }
+    if(e.target.id === "btn-goto-therapist") { const res = upsertCurrentCaseAndRecord({ markDone:false }); if(res) switchTab("therapist"); }
+    if(e.target.id === "btn-mark-done") { 
+      const res = upsertCurrentCaseAndRecord({ markDone:true }); 
+      if(res) { 
+        showToast("同步中...", "info"); 
+        syncCaseToSupabase().then(() => showToast("✅ 評估已完成並同步！", "success")); 
+      } 
+    }
+    if(e.target.id === "btn-back-client") { switchTab("client"); }
   });
   
   $("input,textarea").forEach(el=>el.addEventListener("input", triggerAutoSave));
   $("#case-search")?.addEventListener("input", renderCaseList);
-  
-  // === CRITICAL FIX: Explicit Button Binding ===
-  const btnClear = document.getElementById("btn-clear");
-  if(btnClear) btnClear.onclick = ()=>{ if(confirm("清除暫存？")) { localStorage.clear(); location.reload(); }};
-  
-  const btnGoTherapist = document.getElementById("btn-goto-therapist");
-  if(btnGoTherapist) btnGoTherapist.onclick = ()=>{ 
-    const res = upsertCurrentCaseAndRecord({ markDone:false }); 
-    if(res) {
-      switchTab("therapist");
-      switchSubTab("therapist", "subjective");
-    }
-  };
-  
-  const btnMarkDone = document.getElementById("btn-mark-done");
-  if(btnMarkDone) btnMarkDone.onclick = async ()=>{ 
-    const res = upsertCurrentCaseAndRecord({ markDone:true }); 
-    if(res) { 
-      showToast("同步中...", "info"); 
-      await syncCaseToSupabase(); 
-      showToast("✅ 評估已完成並同步！", "success");
-    }
-  };
-  
-  const btnBackClient = document.getElementById("btn-back-client");
-  if(btnBackClient) btnBackClient.onclick = ()=>switchTab("client");
 
-  // Init
   renderClientUI(loadClient());
   renderTherapistUI(loadTherapist());
   renderSummary();
