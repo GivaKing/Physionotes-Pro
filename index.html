@@ -7,7 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -33,8 +32,8 @@
         <label class="auth-label" for="auth-password">密碼</label>
         <div class="auth-input-wrap">
           <input id="auth-password" type="password" class="auth-input" placeholder="至少 6 碼" autocomplete="current-password">
-          <button type="button" class="auth-eye" id="btn-toggle-pw" aria-label="顯示/隱藏密碼">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button type="button" class="auth-eye" id="btn-toggle-pw">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
@@ -58,7 +57,7 @@
       <div class="auth-field signup-only">
         <label class="terms-line">
           <input type="checkbox" id="agree-terms">
-          <span>我已閱讀並同意<a href="javascript:void(0)" onclick="openTermsWindow()">《註冊須知與個資同意書》</a></span>
+          <span>我已閱讀並同意<a href="javascript:void(0)" onclick="window.openTermsWindow()">《註冊須知與個資同意書》</a></span>
         </label>
       </div>
 
@@ -74,7 +73,7 @@
         PhysioNotes <span class="badge">Pro</span>
         <div class="title-right">
           <div class="user-chip-wrap">
-            <button id="user-chip" class="user-chip hidden">
+            <button id="user-chip" class="user-chip hidden" onclick="window.toggleUserMenu()">
               <span class="user-dot"></span>
               <span id="user-text" class="user-text">User</span>
               <span class="user-arrow">▼</span>
@@ -227,6 +226,20 @@
           </div>
 
           <div class="divider"></div>
+          <div class="row">
+            <label>不適部位標籤 (Body Parts Tags)</label>
+            <div class="chips" data-field-pt="bodyParts" data-type="multi">
+              <button type="button" class="chip" data-value="頸部">頸部</button>
+              <button type="button" class="chip" data-value="胸椎">胸椎</button>
+              <button type="button" class="chip" data-value="腰椎">腰椎</button>
+              <button type="button" class="chip" data-value="骨盆">骨盆</button>
+              <button type="button" class="chip" data-value="肩">肩</button>
+              <button type="button" class="chip" data-value="肘/手">肘/手</button>
+              <button type="button" class="chip" data-value="髖">髖</button>
+              <button type="button" class="chip" data-value="膝">膝</button>
+              <button type="button" class="chip" data-value="踝/足">踝/足</button>
+            </div>
+          </div>
 
           <div class="row"><label>症狀描述</label><textarea id="main-complaint" data-field-pt="mainComplaint" placeholder="描述疼痛性質、位置、加劇/緩解因子..."></textarea></div>
           
@@ -243,7 +256,7 @@
         </section>
 
         <section class="section therapist-subpage" data-sub="objective">
-          <div class="section-title">客觀觀察 <span>Observation</span></div>
+          <div class="section-title">客觀觀察 <span>Objective</span></div>
           <div class="row"><label>姿勢 (Posture)</label><textarea id="obs-posture" data-field-pt="obsPosture"></textarea></div>
           <div class="row"><label>步態 (Gait)</label><textarea id="obs-gait" data-field-pt="obsGait"></textarea></div>
         </section>
@@ -296,7 +309,7 @@
         <div class="sticky-footer">
           <div class="btn-row">
             <button type="button" class="btn btn-outline" id="btn-back-client">⬅ 返回個案</button>
-            <button type="button" id="btn-mark-done" class="btn btn-success">完成評估 (儲存) ✓</button>
+            <button type="button" id="btn-mark-done" class="btn btn-success">完成評估 (儲存)</button>
           </div>
         </div>
       </div>
@@ -308,14 +321,12 @@
         <div class="row">
           <input id="case-search" type="text" placeholder="🔍 搜尋姓名..." class="search-bar">
         </div>
-        
         <div class="case-stats-row">
           <span id="case-count">0 位個案</span>
-          <button id="btn-import-all" class="btn-text">匯入備份</button>
-          <button id="btn-export-all" class="btn-text">匯出備份</button>
+          <button id="btn-import-all" class="btn-text">匯入</button>
+          <button id="btn-export-all" class="btn-text">匯出</button>
           <input type="file" id="import-file" style="display:none;">
         </div>
-
         <div id="case-list" class="case-grid"></div>
       </div>
     </main>
@@ -325,18 +336,18 @@
   
   <div id="profile-drawer" class="drawer hidden" onclick="onDrawerMaskClick(event)">
     <div class="drawer-panel">
-      <div class="drawer-header"><h2>個人資料</h2><button class="drawer-close" onclick="closeProfileDrawer()">✕</button></div>
+      <div class="drawer-header"><h2>個人資料</h2><button class="drawer-close" onclick="window.closeProfileDrawer()">✕</button></div>
       <div class="auth-field"><label>Email</label><input id="profile-email" class="auth-input" disabled></div>
       <div class="auth-field"><label>姓名</label><input id="profile-name" class="auth-input"></div>
       <div class="auth-field"><label>職業</label><input id="profile-job" class="auth-input"></div>
-      <button class="btn-primary btn-save" onclick="saveProfile()">儲存</button>
+      <button class="btn-primary btn-save" onclick="window.saveProfile()">儲存</button>
     </div>
   </div>
 
   <div id="terms-modal" class="terms-modal hidden">
-    <div class="terms-backdrop" onclick="closeTermsModal()"></div>
+    <div class="terms-backdrop" onclick="window.closeTermsModal()"></div>
     <div class="terms-panel">
-       <button class="terms-close" onclick="closeTermsModal()">✕</button>
+       <button class="terms-close" onclick="window.closeTermsModal()">✕</button>
        <div class="terms-content"><h1>隱私權條款</h1><p>...</p></div>
     </div>
   </div>
