@@ -12,7 +12,6 @@ const authError = document.getElementById("auth-error");
 const tabLogin = document.getElementById("tab-login");
 const tabSignup = document.getElementById("tab-signup");
 const btnAuth = document.getElementById("btn-auth-submit");
-const btnLogout = document.getElementById("btn-logout");
 let authMode = "login";
 
 function setAuthMode(mode){
@@ -59,7 +58,7 @@ async function handleAuthSubmit(){
       if (error) throw error;
       const ok = await guardRoleOrBlock();
       if (!ok) return;
-      if(window.clearLocalDraft) window.clearLocalDraft();
+      if(window.clearLocalDraft) window.clearLocalDraft(); // optional clear
       showApp();
       await renderUserChip();
       if(window.syncPatientsFromSupabase) await window.syncPatientsFromSupabase();
@@ -132,17 +131,14 @@ async function renderUserChip(){
   chip.classList.remove("hidden");
 }
 
-window.toggleUserMenu = () => {
-  const menu = document.getElementById("user-menu");
-  menu.classList.toggle("active");
-};
-
+// User Menu Logic
+window.toggleUserMenu = () => document.getElementById("user-menu")?.classList.toggle("active");
 window.openUserMenu = () => document.getElementById("user-menu")?.classList.add("active");
 window.closeUserMenu = () => setTimeout(()=>document.getElementById("user-menu")?.classList.remove("active"), 300);
 
-window.logoutFromMenu = () => { 
-  document.getElementById("user-menu")?.classList.remove("active"); 
-  if (window.logout) window.logout(); 
+window.logout = async () => {
+  await sb.auth.signOut();
+  window.location.reload();
 };
 
 window.openProfileDrawer = async () => {
@@ -171,6 +167,7 @@ window.saveProfile = async () => {
 };
 window.onDrawerMaskClick = (e) => { if(e.target.id === "profile-drawer") closeProfileDrawer(); };
 
+// Bindings
 window.openTermsWindow = () => document.getElementById("terms-modal")?.classList.remove("hidden");
 window.closeTermsModal = () => document.getElementById("terms-modal")?.classList.add("hidden");
 
@@ -182,13 +179,7 @@ if (btnTogglePw) btnTogglePw.addEventListener("click", ()=>{
   pwInput.type = (pwInput.type === "password") ? "text" : "password"; 
 });
 
-// Global Logout Function
-window.logout = async () => {
-  if (window.clearLocalDraft) window.clearLocalDraft(); 
-  await sb.auth.signOut();
-  showLogin();
-};
-
+// Init Check
 document.addEventListener("DOMContentLoaded", async () => {
   const { data } = await sb.auth.getSession();
   if (!data?.session) { showLogin(); return; }
