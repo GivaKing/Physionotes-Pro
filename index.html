@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>PhysioNotes Professional</title>
-  
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩺</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   
@@ -76,7 +75,7 @@
             </button>
             <div id="user-menu" class="user-menu hidden">
               <button onclick="openProfileDrawer()">👤 個人資料</button>
-              <button onclick="logoutFromMenu()">➜] 登出帳號</button>
+              <button onclick="logoutFromMenu()">➜ 登出帳號</button>
             </div>
           </div>
         </div>
@@ -116,9 +115,9 @@
         <section class="section client-subpage" data-sub="basic">
           <div class="section-title">基本資料 <span>Basic Info</span></div>
           <div class="grid-2">
-            <div class="row"><label for="name">姓名</label><input id="name" name="name" type="text" data-field /></div>
+            <div class="row"><label>姓名</label><input id="name" name="name" type="text" data-field /></div>
             <div class="row">
-              <label for="dob">出生年月日</label>
+              <label>出生年月日</label>
               <div style="display:flex; gap:8px; align-items:center;">
                 <input id="dob" name="dob" type="date" data-field style="flex:1;" />
                 <span id="calculated-age" style="font-size:0.85rem; color:var(--primary); font-weight:600; min-width:40px; text-align:right;"></span>
@@ -134,7 +133,7 @@
                 <button type="button" class="pill-toggle" data-value="其他">其他</button>
               </div>
             </div>
-            <div class="row"><label for="job">職業</label><input id="job" name="job" type="text" data-field /></div>
+            <div class="row"><label>職業</label><input id="job" name="job" type="text" data-field /></div>
           </div>
           <div class="row">
              <label>生活型態</label>
@@ -169,13 +168,13 @@
 
           <div class="divider"></div>
           <div class="section-title">過去病史 <span>History</span></div>
-          <div class="row"><label>病史 / 手術 / 用藥</label><textarea id="history" data-field name="history" placeholder="例：高血壓、腰椎手術、服用抗凝血劑..."></textarea></div>
+          <div class="row"><label>病史 / 手術 / 用藥</label><textarea id="history" data-field name="history" placeholder="例：高血壓、腰椎手術..."></textarea></div>
         </section>
 
         <div class="sticky-footer">
           <div class="btn-row">
-            <button type="button" class="btn btn-outline" id="btn-clear">清除</button>
-            <button type="button" class="btn btn-primary" id="btn-goto-therapist">前往評估 ➜</button>
+            <button type="button" class="btn btn-outline" id="btn-clear">清除暫存</button>
+            <button type="button" class="btn btn-primary" id="btn-goto-therapist">交給治療師評估 ➜</button>
           </div>
         </div>
       </div>
@@ -227,9 +226,9 @@
         </section>
 
         <section class="section therapist-subpage" data-sub="objective">
-          <div class="section-title">客觀觀察 <span>Observation</span></div>
-          <div class="row"><label>姿勢</label><textarea id="obs-posture" data-field-pt="obsPosture" placeholder="例：頭部前引、圓肩..."></textarea></div>
-          <div class="row"><label>步態 / 動作模式</label><textarea id="obs-gait" data-field-pt="obsGait" placeholder="例：Trendelenburg sign..."></textarea></div>
+          <div class="section-title">客觀觀察 <span>Objective</span></div>
+          <div class="row"><label>姿勢 (Posture)</label><textarea id="obs-posture" data-field-pt="obsPosture" placeholder="例：頭部前引、圓肩..."></textarea></div>
+          <div class="row"><label>步態 / 動作模式 (Gait/Movement)</label><textarea id="obs-gait" data-field-pt="obsGait" placeholder="例：Trendelenburg sign..."></textarea></div>
         </section>
 
         <section class="section therapist-subpage" data-sub="assessment">
@@ -261,7 +260,7 @@
         </section>
 
         <section class="section therapist-subpage" data-sub="plan">
-           <div class="section-title">評估結果與計畫 <span>Plan</span></div>
+           <div class="section-title">計畫與建議 <span>Plan</span></div>
            
            <div class="row">
              <label>臨床推論 (Clinical Reasoning)</label>
@@ -282,7 +281,7 @@
         <div class="sticky-footer">
           <div class="btn-row">
             <button type="button" class="btn btn-outline" id="btn-back-client">⬅ 返回個案</button>
-            <button type="button" id="btn-mark-done" class="btn btn-success">完成本次紀錄 ✓</button>
+            <button type="button" id="btn-mark-done" class="btn btn-success">完成評估 (儲存)</button>
           </div>
         </div>
       </div>
