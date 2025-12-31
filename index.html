@@ -4,10 +4,7 @@
   <meta charset="UTF-8" />
   <title>PhysioNotes Professional</title>
   
-  <link rel="apple-touch-icon" sizes="180x180" href="/logo.ico">
-  <meta name="apple-mobile-web-app-title" content="PhysioNotes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="icon" href="/logo.ico">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩺</text></svg>">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,7 +15,7 @@
   <div id="auth-screen" class="auth-screen-wrap">
     <div class="auth-card">
       <div class="auth-title">
-        <img src="/logo-icon.png" alt="PhysioNotes" class="app-logo">
+        <span style="font-size:1.6rem; margin-right:8px;">🩺</span>
         PhysioNotes
       </div>
       <div class="auth-sub">專業物理治療個案管理系統</div>
@@ -33,6 +30,14 @@
         <input id="auth-email" type="email" class="auth-input" placeholder="you@example.com" autocomplete="email">
       </div>
 
+      <div class="auth-field">
+        <label class="auth-label" for="auth-password">密碼</label>
+        <div class="auth-input-wrap">
+          <input id="auth-password" type="password" class="auth-input" placeholder="至少 6 碼" autocomplete="current-password">
+          <button type="button" class="auth-eye" id="btn-toggle-pw" aria-label="顯示/隱藏密碼">👁️</button>
+        </div>
+      </div>
+
       <div class="auth-field signup-only">
         <label class="auth-label" for="auth-name">姓名</label>
         <input id="auth-name" type="text" class="auth-input" placeholder="真實姓名" autocomplete="name">
@@ -44,14 +49,6 @@
       <div class="auth-field signup-only">
         <label class="auth-label" for="auth-birthday">出生年月日</label>
         <input id="auth-birthday" type="date" class="auth-input">
-      </div>
-      
-      <div class="auth-field">
-        <label class="auth-label" for="auth-password">密碼</label>
-        <div class="auth-input-wrap">
-          <input id="auth-password" type="password" class="auth-input" placeholder="至少 6 碼" autocomplete="current-password">
-          <button type="button" class="auth-eye" id="btn-toggle-pw" aria-label="顯示/隱藏密碼">👁️</button>
-        </div>
       </div>
 
       <div class="auth-field signup-only">
@@ -69,9 +66,8 @@
   <div id="app-root" class="app hidden">
     <header>
       <div class="title">
-        <img src="/logo-icon.png" alt="PhysioNotes" class="app-logo">
-        PhysioNotes
-        <span class="badge">Pro</span>
+        <span style="font-size:1.5rem;">🩺</span>
+        PhysioNotes <span class="badge">Pro</span>
         <div class="title-right">
           <div class="user-chip-wrap" onmouseenter="openUserMenu()" onmouseleave="closeUserMenu()">
             <button id="user-chip" class="user-chip hidden" type="button" onclick="window.toggleUserMenu()">
@@ -105,7 +101,7 @@
           <div id="summary-block">
             <div class="summary-row"><div class="summary-label">姓名</div><div class="summary-value" id="s-name">—</div></div>
             <div class="summary-row"><div class="summary-label">年齡 / 性別</div><div class="summary-value" id="s-age-gender">—</div></div>
-            <div class="summary-row"><div class="summary-label">職業 / 生活</div><div class="summary-value" id="s-job-life"><div class="pill-group" id="s-lifestyle"></div></div></div>
+            <div class="summary-row"><div class="summary-label">職業</div><div class="summary-value" id="s-job-life">—</div></div>
             <div class="summary-row"><div class="summary-label">主訴</div><div class="summary-value" id="s-main">—</div></div>
             <div class="summary-row"><div class="summary-label">VAS 疼痛</div><div class="summary-value" id="s-pain-scale">—</div></div>
           </div>
@@ -120,8 +116,7 @@
         <section class="section client-subpage" data-sub="basic">
           <div class="section-title">基本資料 <span>Basic Info</span></div>
           <div class="grid-2">
-            <div class="row"><label for="name">姓名</label><input id="name" name="name" type="text" placeholder="王小明" data-field /></div>
-            
+            <div class="row"><label for="name">姓名</label><input id="name" name="name" type="text" data-field /></div>
             <div class="row">
               <label for="dob">出生年月日</label>
               <div style="display:flex; gap:8px; align-items:center;">
@@ -130,7 +125,6 @@
               </div>
             </div>
           </div>
-          
           <div class="grid-2">
             <div class="row">
               <label>性別</label>
@@ -140,9 +134,8 @@
                 <button type="button" class="pill-toggle" data-value="其他">其他</button>
               </div>
             </div>
-            <div class="row"><label for="job">職業</label><input id="job" name="job" type="text" placeholder="例：工程師" data-field /></div>
+            <div class="row"><label for="job">職業</label><input id="job" name="job" type="text" data-field /></div>
           </div>
-          
           <div class="row">
              <label>生活型態</label>
              <div class="chips" data-field="lifestyle" data-type="multi">
@@ -155,35 +148,28 @@
           </div>
 
           <div class="divider"></div>
-          <div class="section-title">過去病史 <span>History</span></div>
-          <div class="row"><label>重大疾病/手術/用藥</label><textarea id="history" data-field name="history" placeholder="例：高血壓、腰椎手術、服用抗凝血劑..."></textarea></div>
-
-          <div class="bottom-space"></div>
-          
           <details class="red-flag-details">
             <summary class="red-flag-summary">
-              🚩 紅旗徵兆篩檢 (Red Flags Screening)
+              🚩 紅旗徵兆篩檢 (Red Flags)
               <span style="font-size:0.75rem; color:#666; font-weight:400; margin-left:auto;">點擊展開</span>
             </summary>
             <div class="red-flag-content">
               <div class="red-flag-category">癌症 / 腫瘤徵兆</div>
               <label class="checkbox-row"><input type="checkbox" data-field="rf_night_pain"> 夜間持續疼痛且無法緩解 (Night Pain)</label>
-              <label class="checkbox-row"><input type="checkbox" data-field="rf_weight_loss"> 近期不明原因體重減輕 (Unexplained Weight Loss)</label>
-              <label class="checkbox-row"><input type="checkbox" data-field="rf_history_cancer"> 癌症病史 (History of Cancer)</label>
-              
+              <label class="checkbox-row"><input type="checkbox" data-field="rf_weight_loss"> 近期不明原因體重減輕 (Weight Loss)</label>
               <div class="red-flag-category">神經 / 脊髓徵兆</div>
               <label class="checkbox-row"><input type="checkbox" data-field="rf_cauda"> 馬尾症候群 (大小便失禁/會陰麻木)</label>
-              <label class="checkbox-row"><input type="checkbox" data-field="rf_neuro_deficit"> 進行性神經缺損 (Progressive Neurological Deficit)</label>
-
+              <label class="checkbox-row"><input type="checkbox" data-field="rf_neuro_deficit"> 進行性神經缺損 (Neuro Deficit)</label>
               <div class="red-flag-category">其他緊急狀況</div>
               <label class="checkbox-row"><input type="checkbox" data-field="rf_infection"> 感染徵兆 (發燒、局部紅腫熱痛)</label>
-              <label class="checkbox-row"><input type="checkbox" data-field="rf_fracture"> 重大創傷/骨折疑慮 (Trauma/Fracture)</label>
-              <label class="checkbox-row"><input type="checkbox" data-field="rf_inflammatory"> 發炎性關節炎 (晨僵 > 30分)</label>
-              
-              <div class="hint" style="color:#b91c1c; margin-top:8px;">⚠️ 若勾選以上任何項目，建議優先進行醫療轉診或進一步醫學檢查。</div>
+              <label class="checkbox-row"><input type="checkbox" data-field="rf_fracture"> 重大創傷/骨折疑慮 (Fracture)</label>
+              <div class="hint" style="color:#b91c1c; margin-top:8px;">⚠️ 若勾選以上項目，建議優先評估轉診。</div>
             </div>
           </details>
 
+          <div class="divider"></div>
+          <div class="section-title">過去病史 <span>History</span></div>
+          <div class="row"><label>病史 / 手術 / 用藥</label><textarea id="history" data-field name="history" placeholder="例：高血壓、腰椎手術、服用抗凝血劑..."></textarea></div>
         </section>
 
         <div class="sticky-footer">
@@ -198,8 +184,9 @@
     <main id="page-therapist" class="page">
       <div class="card">
         <div class="subtabs" id="therapist-subtabs">
-          <button type="button" class="subtab-btn" data-sub="subjective">主訴 (S)</button>
+          <button type="button" class="subtab-btn active" data-sub="subjective">主訴 (S)</button>
           <button type="button" class="subtab-btn" data-sub="objective">客觀 (O)</button>
+          <button type="button" class="subtab-btn" data-sub="assessment">評估 (A)</button>
           <button type="button" class="subtab-btn" data-sub="plan">計畫 (P)</button>
         </div>
         
@@ -207,25 +194,25 @@
         <div id="pt-timeline" class="timeline-wrap"></div>
         <div class="divider"></div>
 
-        <section class="section therapist-subpage" data-sub="subjective">
+        <section class="section therapist-subpage active" data-sub="subjective">
           <div class="section-title">主訴與症狀 <span>Subjective</span></div>
           
           <div class="row">
             <label>不適部位 (Body Parts)</label>
             <div class="chips" data-field-pt="bodyParts" data-type="multi">
               <button type="button" class="chip" data-value="頸部">頸部</button>
-              <button type="button" class="chip" data-value="胸椎/上背">胸椎/上背</button>
-              <button type="button" class="chip" data-value="腰椎/下背">腰椎/下背</button>
-              <button type="button" class="chip" data-value="骨盆/SIJ">骨盆/SIJ</button>
-              <button type="button" class="chip" data-value="肩關節">肩關節</button>
-              <button type="button" class="chip" data-value="肘/腕/手">肘/腕/手</button>
-              <button type="button" class="chip" data-value="髖關節">髖關節</button>
-              <button type="button" class="chip" data-value="膝關節">膝關節</button>
-              <button type="button" class="chip" data-value="踝/足">踝/足</button>
+              <button type="button" class="chip" data-value="胸椎">胸椎</button>
+              <button type="button" class="chip" data-value="腰椎">腰椎</button>
+              <button type="button" class="chip" data-value="骨盆">骨盆</button>
+              <button type="button" class="chip" data-value="肩">肩</button>
+              <button type="button" class="chip" data-value="肘/手">肘/手</button>
+              <button class="chip" data-value="髖">髖</button>
+              <button class="chip" data-value="膝">膝</button>
+              <button class="chip" data-value="踝/足">踝/足</button>
             </div>
           </div>
 
-          <div class="row"><label>主要症狀描述</label><textarea id="main-complaint" data-field-pt="mainComplaint" placeholder="描述疼痛性質、位置、加劇/緩解因子..."></textarea></div>
+          <div class="row"><label>症狀描述</label><textarea id="main-complaint" data-field-pt="mainComplaint" placeholder="描述疼痛性質、位置、加劇/緩解因子..."></textarea></div>
           
           <div class="grid-2">
              <div class="row">
@@ -240,15 +227,17 @@
         </section>
 
         <section class="section therapist-subpage" data-sub="objective">
-          <div class="section-title">客觀評估 <span>Objective</span></div>
-          <div class="row"><label>姿勢與步態</label><textarea id="obs-posture" data-field-pt="obsPosture"></textarea></div>
-          
-          <div class="divider"></div>
-          <div class="section-title">關節活動度 <span>Range of Motion</span></div>
+          <div class="section-title">客觀觀察 <span>Observation</span></div>
+          <div class="row"><label>姿勢</label><textarea id="obs-posture" data-field-pt="obsPosture" placeholder="例：頭部前引、圓肩..."></textarea></div>
+          <div class="row"><label>步態 / 動作模式</label><textarea id="obs-gait" data-field-pt="obsGait" placeholder="例：Trendelenburg sign..."></textarea></div>
+        </section>
+
+        <section class="section therapist-subpage" data-sub="assessment">
+          <div class="section-title">評估與測試 <span>Assessment</span></div>
           
           <div class="rom-tool-wrap">
             <div class="row">
-              <label>選擇評估關節</label>
+              <label>關節活動度 (ROM) - 選擇關節</label>
               <select id="rom-joint-select">
                 <option value="">-- 請選擇 --</option>
                 <option value="Cervical">頸椎 (Cervical)</option>
@@ -261,18 +250,19 @@
                 <option value="Ankle">踝關節 (Ankle)</option>
               </select>
             </div>
-            
             <div id="rom-dynamic-container">
-              <div class="hint">請選擇關節以開始輸入數據。系統將自動標示異常角度。</div>
+              <div class="hint">請選擇關節以輸入數據。系統將自動標示異常角度。</div>
             </div>
           </div>
 
           <div class="divider"></div>
-          <div class="row"><label>特殊測試 / 觸診 / 神經張力</label><textarea id="special-test" data-field-pt="specialTests" style="min-height:100px;"></textarea></div>
+          <div class="row"><label>特殊測試 (Special Tests)</label><textarea id="special-test" data-field-pt="specialTests" style="min-height:80px;"></textarea></div>
+          <div class="row"><label>觸診 (Palpation)</label><textarea id="palpation" data-field-pt="palpation" style="min-height:60px;"></textarea></div>
         </section>
 
         <section class="section therapist-subpage" data-sub="plan">
-           <div class="section-title">評估結果與計畫 <span>Assessment & Plan</span></div>
+           <div class="section-title">評估結果與計畫 <span>Plan</span></div>
+           
            <div class="row">
              <label>臨床推論 (Clinical Reasoning)</label>
              <div class="inline-tools">
@@ -280,11 +270,12 @@
                <button type="button" class="chip insert-btn" data-target="reasoning" data-insert="2° to">2° to</button>
                <button type="button" class="chip insert-btn" data-target="reasoning" data-insert="LBP">LBP</button>
                <button type="button" class="chip insert-btn" data-target="reasoning" data-insert="HIVD">HIVD</button>
-               <button type="button" class="chip insert-btn" data-target="reasoning" data-insert="OA">OA</button>
              </div>
              <textarea id="reasoning" data-field-pt="reasoning"></textarea>
            </div>
-           <div class="row"><label>今日治療項目</label><textarea id="tx-plan" data-field-pt="treatmentPlan"></textarea></div>
+
+           <div class="row"><label>治療目標 (Goals)</label><textarea id="goals" data-field-pt="goals" placeholder="例：降低疼痛 VAS < 2..."></textarea></div>
+           <div class="row"><label>今日治療項目 (Treatment)</label><textarea id="tx-plan" data-field-pt="treatmentPlan"></textarea></div>
            <div class="row"><label>居家運動 (HEP)</label><textarea id="hep" data-field-pt="homeEx"></textarea></div>
         </section>
 
@@ -332,10 +323,7 @@
     <div class="terms-backdrop" onclick="closeTermsModal()"></div>
     <div class="terms-panel">
        <button class="terms-close" onclick="closeTermsModal()">✕</button>
-       <div class="terms-content">
-         <h1>隱私權條款</h1>
-         <p>歡迎您使用 PhysioNotes（以下稱「本系統」）。...</p>
-         </div>
+       <div class="terms-content"><h1>隱私權條款</h1><p>...</p></div>
     </div>
   </div>
 
