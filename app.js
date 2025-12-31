@@ -4,9 +4,7 @@ function showToast(msg, type="info") {
   if(!container) return;
   const el = document.createElement("div");
   el.className = `toast ${type}`;
-  let icon = "ℹ️";
-  if(type==="success") icon="✅"; else if(type==="error") icon="❌";
-  el.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  el.innerHTML = `<span>${type==="success"?"✅":"ℹ️"}</span><span>${msg}</span>`;
   container.appendChild(el);
   requestAnimationFrame(() => el.classList.add("show"));
   setTimeout(() => {
@@ -15,14 +13,13 @@ function showToast(msg, type="info") {
   }, 3000);
 }
 
-// === Constants ===
 const STORAGE = {
-  client: "pt_client_v6",
-  therapist: "pt_therapist_v6",
-  library: "pt_library_v6",
-  visit: "pt_visit_v6",
-  currentCaseId: "pt_case_id",
-  recordIdx: "pt_rec_idx"
+  client: "pt_eval_client_v1",
+  therapist: "pt_eval_therapist_v1",
+  library: "pt_eval_case_library_v1",
+  visit: "pt_eval_visit_v1",
+  currentCaseId: "pt_eval_current_case_id_v1",
+  recordIdx: "pt_eval_current_record_idx_v1" // 統一命名
 };
 
 const ROM_DATA = {
@@ -41,7 +38,7 @@ const $$ = (s)=>document.querySelectorAll(s);
 const parse = (s,f)=>{try{return JSON.parse(s??"")??f}catch{return f}};
 const now = ()=>Date.now();
 
-// Data Loading
+// Data Loading (沿用舊版邏輯)
 const loadClient = ()=>parse(localStorage.getItem(STORAGE.client),{});
 const saveClient = (d)=>localStorage.setItem(STORAGE.client, JSON.stringify(d||{}));
 const loadTherapist = ()=>parse(localStorage.getItem(STORAGE.therapist),{});
@@ -52,6 +49,7 @@ const resetVisit = ()=>saveVisit({ vasNow:null, vasMax:null });
 const loadLib = ()=>parse(localStorage.getItem(STORAGE.library),{});
 const saveLib = (d)=>localStorage.setItem(STORAGE.library,JSON.stringify(d||{}));
 
+// Globals
 window.loadLib = loadLib;
 window.getCurrentCaseId = ()=>localStorage.getItem(STORAGE.currentCaseId);
 const setCurrentCaseId = (id)=> id ? localStorage.setItem(STORAGE.currentCaseId,id) : localStorage.removeItem(STORAGE.currentCaseId);
@@ -68,21 +66,21 @@ window.ensureCaseShape = (item)=>{
     client: item.client||{},
     records: [{
       therapist: item.therapist||{},
-      status: item.status || "draft",
-      createdAt: item.createdAt || now(),
-      updatedAt: item.updatedAt || now(),
-      visit: item.visit || { vasNow:null, vasMax:null }
+      status: "draft",
+      createdAt: now(),
+      updatedAt: now(),
+      visit: { vasNow:null, vasMax:null }
     }]
   };
 };
 
 const pages = { client: ()=>$("#page-client"), therapist: ()=>$("#page-therapist"), cases: ()=>$("#page-cases") };
 
-// Logic
+// Collect Data
 const collectClient = ()=>{
   const r = pages.client(), d = {};
   $$("[data-field]", r).forEach(el=>{
-    if(el.type==="checkbox"){ d[el.getAttribute("data-field")] = el.checked; return; }
+    if(el.type==="checkbox"){ d[el.getAttribute("data-field")] = el.checked; return; } // 新增：Checkbox 支援
     if(el.type==="range") return; 
     const k = el.name || el.id || el.getAttribute("data-field"); if(!k) return;
     d[k] = (el.type==="number" ? (el.value===""?null:Number(el.value)) : (el.value??"").toString());
@@ -96,7 +94,6 @@ const collectClient = ()=>{
     const k = w.getAttribute("data-field");
     d[k] = $$(".chip.selected", w).map(c=>c.getAttribute("data-value"));
   });
-  if(d.dob) d.age = calculateAge(d.dob);
   d.name = (d.name||"").trim();
   return d;
 };
@@ -112,10 +109,12 @@ const collectTherapist = ()=>{
     const k = w.getAttribute("data-field-pt");
     d[k] = $$(".chip.selected", w).map(c=>c.getAttribute("data-value"));
   });
+  // 新增：收集 ROM 輸入
   $$(".rom-input").forEach(el => {
     const key = el.dataset.romKey;
     if(key && el.value) d[key] = el.value;
   });
+  // 新增：收集 Pain List
   const t = loadTherapist();
   if(t.painParts) d.painParts = t.painParts;
   return d;
@@ -130,27 +129,20 @@ const collectVisitFromSliders = ()=>{
   return v;
 };
 
-function calculateAge(dobStr) {
-  if(!dobStr) return "";
-  const diff = Date.now() - new Date(dobStr).getTime();
-  return Math.floor(diff / (31557600000));
-}
-
+// Render UI
 const renderClientUI = (d)=>{
   d=d||{};
   const r = pages.client();
   $$("input,textarea", r).forEach(el=>{
-    if(el.type==="checkbox") el.checked=false; else if(el.type!=="date") el.value="";
+    if(el.type==="checkbox") el.checked = false; else if(el.type!=="date") el.value="";
   });
   $$(".pill-toggle.active", r).forEach(el=>el.classList.remove("active"));
   $$(".chip.selected", r).forEach(el=>el.classList.remove("selected"));
-  $("#calculated-age").textContent="";
 
   $$("[data-field]", r).forEach(el=>{
     const k = el.name || el.id || el.getAttribute("data-field"); if(!k) return;
-    if(el.type==="checkbox"){ el.checked = !!d[k]; }
-    else if(el.type==="date"){ el.value = d[k] || ""; if(d[k]) $("#calculated-age").textContent = calculateAge(d[k]) + " 歲"; }
-    else { if(el.type==="range") return; el.value = (d[k]==null ? "" : String(d[k])); }
+    if(el.type==="checkbox"){ el.checked = !!d[k]; } // 新增：Checkbox 支援
+    else if(el.type!=="range") el.value = (d[k]==null ? "" : String(d[k]));
   });
   $$(".pill-toggle-group[data-field]", r).forEach(g=>{
     const k = g.getAttribute("data-field");
@@ -180,15 +172,16 @@ const renderTherapistUI = (d)=>{
     const set = new Set(d[k]||[]);
     $$(".chip", w).forEach(c=>c.classList.toggle("selected", set.has(c.getAttribute("data-value"))));
   });
+  // 新增：重置動態區塊
   $("#rom-dynamic-container").innerHTML = `<div class="hint">請選擇關節以檢視數據。</div>`;
   $("#rom-joint-select").value = "";
-  
   renderPainList(d.painParts || []);
   const visit = loadVisit();
   if($("#pain-now")) $("#pain-now").value = visit.vasNow ?? "";
   if($("#pain-max")) $("#pain-max").value = visit.vasMax ?? "";
 };
 
+// 新功能邏輯
 function addPainPart() {
   const partSelect = $("#pain-part-select");
   const vasInput = $("#pain-part-vas");
@@ -224,7 +217,6 @@ function renderPainList(list) {
     container.appendChild(div);
   });
 }
-
 function renderRomInputs(joint) {
   const container = $("#rom-dynamic-container");
   container.innerHTML = "";
@@ -245,7 +237,6 @@ function renderRomInputs(joint) {
     container.appendChild(row);
   });
 }
-
 function checkRomValue(input) {
   const val = parseFloat(input.value);
   const max = parseFloat(input.dataset.max);
@@ -260,17 +251,12 @@ const renderSummary = ()=>{
   const c = loadClient();
   const visit = loadVisit();
   $("#s-name").textContent = c.name || "—";
-  let ag = "";
-  if(c.dob) ag += `${calculateAge(c.dob)}歲`;
-  if(c.gender) ag += ` / ${c.gender}`;
-  $("#s-age-gender").textContent = ag || "—";
-  const lifeWrap = $("#s-lifestyle"); lifeWrap.innerHTML = "";
-  if(c.job) { const s=document.createElement("span"); s.className="pill-toggle"; s.textContent=c.job; lifeWrap.appendChild(s); }
-  (c.lifestyle||[]).forEach(v=>{ const s=document.createElement("span"); s.className="pill-toggle"; s.textContent=v; lifeWrap.appendChild(s); });
+  $("#s-age-gender").textContent = `${c.age||"?"}歲 / ${c.gender||"-"}`;
   $("#s-main").textContent = $("#main-complaint").value || c.mainComplaint || "—";
   $("#s-pain-scale").textContent = `${visit.vasNow??"-"} / ${visit.vasMax??"-"}`;
 };
 
+// Case Management
 const deleteCase = (caseId) => {
   if(!confirm("確定要刪除此個案？此動作無法復原。")) return;
   const lib = loadLib();
@@ -301,24 +287,16 @@ const renderCaseList = ()=>{
     if(kw && !(c.name + (c.mainComplaint||"")).toLowerCase().includes(kw)) return;
     count++;
     const card = document.createElement("div"); card.className = "case-card";
-    
-    let badgeClass = "mid";
-    if(vas <= 3) badgeClass = "low"; else if(vas >= 7) badgeClass = "";
-    const vasHtml = vas != null ? `<span class="vas-badge ${badgeClass}">VAS ${vas}</span>` : `<span style="color:#cbd5e1;font-size:0.75rem">No VAS</span>`;
-    
+    const vasHtml = vas != null ? `<span class="vas-badge">VAS ${vas}</span>` : `<span style="color:#cbd5e1;font-size:0.75rem">No VAS</span>`;
     card.innerHTML = `
-      <div class="cc-header">
-        <div class="cc-name">${c.name || "未命名"}</div>
-        ${vasHtml}
-      </div>
-      <div class="cc-sub">${c.gender||""} ${c.dob ? calculateAge(c.dob)+"歲" : ""} ${c.job ? "· "+c.job : ""}</div>
+      <div class="cc-header"><div class="cc-name">${c.name || "未命名"}</div>${vasHtml}</div>
+      <div class="cc-sub">${c.gender||""} ${c.age||"?"}歲</div>
       <div class="cc-body">${c.mainComplaint || "無主訴紀錄"}</div>
       <div class="cc-footer">
         <span>評估: ${it.records.length} 次</span>
         <span>${new Date(lastRec.updatedAt).toLocaleDateString()}</span>
         <button class="btn-icon btn-danger" title="刪除" style="margin-left:auto;z-index:2;">🗑</button>
       </div>`;
-    
     card.onclick = (e) => {
       if(e.target.closest(".btn-danger")) { e.stopPropagation(); deleteCase(id); }
       else { openCase(id); }
@@ -343,25 +321,9 @@ function openCase(caseId){
   renderTimeline(item);
   renderSummary();
   if(window.renderVasChart) window.renderVasChart();
-  
-  // === 修復跳轉邏輯 ===
+  // 強制跳轉
   switchTab("client");
   switchSubTab("client", "overview");
-}
-
-function addNewRecordForCurrentCase(){
-  const caseId = window.getCurrentCaseId();
-  if(!caseId) { showToast("請先選擇個案", "error"); return; }
-  const lib = loadLib();
-  const item = window.ensureCaseShape(lib[caseId]);
-  item.records.push({ therapist: {}, visit: {vasNow:null}, status: "draft", createdAt: now(), updatedAt: now() });
-  saveLib(lib);
-  setCurrentRecordIndex(item.records.length-1);
-  resetVisit();
-  saveTherapist({});
-  renderTherapistUI({});
-  renderTimeline(item);
-  showToast("已建立新回診紀錄", "success");
 }
 
 const upsertCurrentCaseAndRecord = ({markDone=false}={})=>{
@@ -389,53 +351,29 @@ const upsertCurrentCaseAndRecord = ({markDone=false}={})=>{
   return { item, caseId };
 };
 
-window.syncPatientsFromSupabase = async () => {
-  if (!sb) return;
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user) return;
-  const { data } = await sb.from("patients").select(`*, visit (*)`).eq("user_id", user.id);
-  if(!data) return;
-  const lib = {};
-  data.forEach(p => {
-    const caseId = `sb_${p.id}`;
-    lib[caseId] = {
-      client: p.raw_client || {},
-      records: (p.visit||[]).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).map(v => ({
-        therapist: v.raw_therapist || {},
-        visit: { vasNow: v.vas_now, vasMax: v.vas_max },
-        status: "done",
-        createdAt: new Date(v.created_at).getTime(),
-        updatedAt: new Date(v.created_at).getTime()
-      }))
-    };
-  });
-  saveLib(lib);
-  renderCaseList();
-};
-
-async function syncCaseToSupabase() {
-  const caseId = window.getCurrentCaseId();
-  if(!caseId) return;
-  const lib = loadLib();
-  const item = lib[caseId];
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user) return;
-  let pId = caseId.startsWith("sb_") ? caseId.replace("sb_","") : null;
-  if(!pId) {
-    const { data, error } = await sb.from("patients").insert({ user_id: user.id, name: item.client.name, raw_client: item.client }).select().single();
-    if(error) { showToast("上傳失敗","error"); return; }
-    pId = data.id;
-    const newId = `sb_${pId}`;
-    lib[newId] = item; delete lib[caseId];
-    saveLib(lib); setCurrentCaseId(newId);
-  } else {
-    await sb.from("patients").update({ raw_client: item.client }).eq("id", pId);
-  }
+const renderTimeline = (item)=>{
+  const wrap = $("#pt-timeline");
+  if(!wrap) return;
+  wrap.innerHTML = "";
+  const recs = item.records || [];
   const idx = getCurrentRecordIndex();
-  const rec = item.records[idx];
-  await sb.from("visit").insert({ user_id: user.id, patient_id: pId, vas_now: rec.visit.vasNow, vas_max: rec.visit.vasMax, raw_therapist: rec.therapist, raw_visit: rec.visit });
-  showToast("✅ 雲端同步完成", "success");
-}
+  recs.forEach((r,i)=>{
+    const chip = document.createElement("div");
+    chip.className = "t-chip" + (i===idx ? " active" : "");
+    chip.textContent = `第 ${i+1} 次`;
+    chip.onclick = ()=>{
+      setCurrentRecordIndex(i);
+      saveTherapist(r.therapist||{});
+      saveVisit(r.visit||{ vasNow:null, vasMax:null });
+      renderTherapistUI(loadTherapist());
+      renderClientUI(loadClient());
+      renderTimeline(item);
+      renderSummary();
+      if(window.renderVasChart) window.renderVasChart();
+    };
+    wrap.appendChild(chip);
+  });
+};
 
 function switchTab(key){
   $$(".tab-btn").forEach(b=>b.classList.toggle("active", b.dataset.target===`page-${key}`));
@@ -463,34 +401,27 @@ const triggerAutoSave = () => { clearTimeout(autoSaveTimer); autoSaveTimer = set
   if(active==="page-therapist") saveTherapist(collectTherapist());
 }, 800); };
 
-// === Use Event Delegation for Safe Button Binding ===
 document.addEventListener("DOMContentLoaded", ()=>{
-  // Tabs
   $$(".tab-btn").forEach(b=>b.addEventListener("click", ()=>switchTab(b.dataset.target.replace("page-",""))));
   $$("#client-subtabs .subtab-btn").forEach(b=>b.addEventListener("click", ()=>switchSubTab("client", b.dataset.sub)));
-  $$("#therapist-subtabs .subtab-btn").forEach(b=> {
-    b.addEventListener("click", ()=> { switchSubTab("therapist", b.dataset.sub); });
-  });
+  $$("#therapist-subtabs .subtab-btn").forEach(b=> { b.addEventListener("click", ()=> { switchSubTab("therapist", b.dataset.sub); }); });
   
-  // Feature Specific Listeners
   $("#btn-add-pain-part")?.addEventListener("click", addPainPart);
-  $("#dob")?.addEventListener("change", (e)=>{ $("#calculated-age").textContent = calculateAge(e.target.value) + " 歲"; triggerAutoSave(); });
   $("#rom-joint-select")?.addEventListener("change", (e)=>{ renderRomInputs(e.target.value); });
   
-  // Delegation for dynamic elements
   document.addEventListener("click", (e)=>{
     if(e.target.closest(".pill-toggle")){ const btn = e.target.closest(".pill-toggle"); const group = btn.closest(".pill-toggle-group"); $$(".pill-toggle", group).forEach(x=>x.classList.remove("active")); btn.classList.add("active"); triggerAutoSave(); renderSummary(); }
     if(e.target.closest(".chip")){ const chip = e.target.closest(".chip"); if(chip.classList.contains("insert-btn")) return; chip.classList.toggle("selected"); triggerAutoSave(); renderSummary(); }
     if(e.target.closest(".insert-btn")){ const btn = e.target.closest(".insert-btn"); const el = document.getElementById(btn.dataset.target); if(el) { el.value = el.value + " " + btn.dataset.insert; triggerAutoSave(); } }
     
-    // === Button Fixes (Delegation) ===
+    // 按鈕邏輯
     if(e.target.id === "btn-clear") { if(confirm("清除暫存？")) { localStorage.clear(); location.reload(); } }
     if(e.target.id === "btn-goto-therapist") { const res = upsertCurrentCaseAndRecord({ markDone:false }); if(res) switchTab("therapist"); }
     if(e.target.id === "btn-mark-done") { 
       const res = upsertCurrentCaseAndRecord({ markDone:true }); 
       if(res) { 
         showToast("同步中...", "info"); 
-        syncCaseToSupabase().then(() => showToast("✅ 評估已完成並同步！", "success")); 
+        window.syncCaseToSupabase().then(() => showToast("✅ 評估已完成並同步！", "success")); 
       } 
     }
     if(e.target.id === "btn-back-client") { switchTab("client"); }
