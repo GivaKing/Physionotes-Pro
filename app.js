@@ -4,9 +4,7 @@ function showToast(msg, type="info") {
   if(!container) return;
   const el = document.createElement("div");
   el.className = `toast ${type}`;
-  let icon = "ℹ️";
-  if(type==="success") icon="✅"; else if(type==="error") icon="❌";
-  el.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  el.innerHTML = `<span>${type==="success"?"✅":"ℹ️"}</span><span>${msg}</span>`;
   container.appendChild(el);
   requestAnimationFrame(() => el.classList.add("show"));
   setTimeout(() => {
@@ -15,12 +13,12 @@ function showToast(msg, type="info") {
   }, 3000);
 }
 
-// === Constants & ROM Data ===
+// === Constants ===
 const STORAGE = {
-  client: "pt_client_v3",
-  therapist: "pt_therapist_v3",
-  library: "pt_library_v3",
-  visit: "pt_visit_v3",
+  client: "pt_client_v4",
+  therapist: "pt_therapist_v4",
+  library: "pt_library_v4",
+  visit: "pt_visit_v4",
   currentCaseId: "pt_case_id",
   recordIdx: "pt_rec_idx"
 };
@@ -36,8 +34,8 @@ const ROM_DATA = {
   "Ankle": [{name:"Dorsi",min:0,max:20},{name:"Plantar",min:0,max:50}]
 };
 
-const $ = (s, r=document)=>r.querySelector(s);
-const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
+const $ = (s)=>document.querySelector(s);
+const $$ = (s)=>document.querySelectorAll(s);
 const parse = (s,f)=>{try{return JSON.parse(s??"")??f}catch{return f}};
 const now = ()=>Date.now();
 
@@ -113,10 +111,16 @@ const collectTherapist = ()=>{
     const k = w.getAttribute("data-field-pt");
     d[k] = $$(".chip.selected", w).map(c=>c.getAttribute("data-value"));
   });
+  // Collect ROM inputs
   $$(".rom-input").forEach(el => {
     const key = el.dataset.romKey;
     if(key && el.value) d[key] = el.value;
   });
+  // Collect Subjective Pain Parts (from local storage or current DOM if we added dynamic inputs, but usually we save on add)
+  // For now, assume it's saved in therapist object via renderPainList/saveTherapist loop
+  const t = loadTherapist();
+  if(t.painParts) d.painParts = t.painParts;
+  
   return d;
 };
 
@@ -179,12 +183,63 @@ const renderTherapistUI = (d)=>{
     const set = new Set(d[k]||[]);
     $$(".chip", w).forEach(c=>c.classList.toggle("selected", set.has(c.getAttribute("data-value"))));
   });
+  // Reset dynamic areas
   $("#rom-dynamic-container").innerHTML = `<div class="hint">請選擇關節以檢視數據。</div>`;
   $("#rom-joint-select").value = "";
+  
+  // Render Pain List
+  renderPainList(d.painParts || []);
+
   const visit = loadVisit();
   if($("#pain-now")) $("#pain-now").value = visit.vasNow ?? "";
   if($("#pain-max")) $("#pain-max").value = visit.vasMax ?? "";
 };
+
+// === New Feature: Pain Part List ===
+function addPainPart() {
+  const partSelect = $("#pain-part-select");
+  const vasInput = $("#pain-part-vas");
+  const part = partSelect.value;
+  const vas = vasInput.value;
+
+  if(!part || !vas) { alert("請選擇部位並填寫 VAS"); return; }
+
+  const t = loadTherapist();
+  const list = t.painParts || [];
+  list.push({ part, vas });
+  t.painParts = list;
+  saveTherapist(t);
+  
+  renderPainList(list);
+  partSelect.value = "";
+  vasInput.value = "";
+}
+
+function deletePainPart(idx) {
+  const t = loadTherapist();
+  const list = t.painParts || [];
+  list.splice(idx, 1);
+  t.painParts = list;
+  saveTherapist(t);
+  renderPainList(list);
+}
+
+function renderPainList(list) {
+  const container = $("#pain-part-list");
+  if(!container) return;
+  container.innerHTML = "";
+  list.forEach((item, idx) => {
+    const div = document.createElement("div");
+    div.className = "pain-item";
+    div.innerHTML = `<div><span>${item.part}</span>: VAS ${item.vas}</div>`;
+    const btn = document.createElement("button");
+    btn.className = "btn-del-pain";
+    btn.textContent = "✕";
+    btn.onclick = () => deletePainPart(idx);
+    div.appendChild(btn);
+    container.appendChild(div);
+  });
+}
 
 function renderRomInputs(joint) {
   const container = $("#rom-dynamic-container");
@@ -232,7 +287,7 @@ const renderSummary = ()=>{
   $("#s-pain-scale").textContent = `${visit.vasNow??"-"} / ${visit.vasMax??"-"}`;
 };
 
-// [新增] 刪除個案
+// Delete Case
 const deleteCase = (caseId) => {
   if(!confirm("確定要刪除此個案？此動作無法復原。")) return;
   const lib = loadLib();
@@ -263,6 +318,8 @@ const renderCaseList = ()=>{
     if(kw && !(c.name + (c.mainComplaint||"")).toLowerCase().includes(kw)) return;
     count++;
     const card = document.createElement("div"); card.className = "case-card";
+    
+    // VAS badge color
     let badgeClass = "mid";
     if(vas <= 3) badgeClass = "low"; else if(vas >= 7) badgeClass = "";
     const vasHtml = vas != null ? `<span class="vas-badge ${badgeClass}">VAS ${vas}</span>` : `<span style="color:#cbd5e1;font-size:0.75rem">No VAS</span>`;
@@ -277,12 +334,10 @@ const renderCaseList = ()=>{
       <div class="cc-footer">
         <span>評估: ${it.records.length} 次</span>
         <span>${new Date(lastRec.updatedAt).toLocaleDateString()}</span>
-        <button class="btn-icon btn-danger" title="刪除" style="margin-left:auto;">🗑</button>
+        <button class="btn-icon btn-danger" title="刪除" style="margin-left:auto;z-index:2;">🗑</button>
       </div>`;
     
-    // 綁定點擊事件
     card.onclick = (e) => {
-      // 如果點到刪除按鈕，不要觸發開啟個案
       if(e.target.closest(".btn-danger")) {
         e.stopPropagation();
         deleteCase(id);
@@ -310,8 +365,9 @@ function openCase(caseId){
   renderTimeline(item);
   renderSummary();
   if(window.renderVasChart) window.renderVasChart();
-  // [修改] 開啟個案時，跳轉到 Client 頁面
+  // Redirect to Client page when opening case
   switchTab("client");
+  switchSubTab("client", "overview");
 }
 
 function addNewRecordForCurrentCase(){
@@ -339,8 +395,8 @@ const renderTimeline = (item)=>{
     const chip = document.createElement("div");
     chip.className = "t-chip" + (i===idx ? " active" : "");
     let label = `第 ${i+1} 次`;
-    // 多主訴功能：如果不適部位有填，顯示在 Timeline 上
-    if(r.therapist?.bodyParts && r.therapist.bodyParts.length > 0) label += ` (${r.therapist.bodyParts[0]}...)`;
+    // If pain parts exist, show summary
+    if(r.therapist?.painParts && r.therapist.painParts.length > 0) label += ` (${r.therapist.painParts[0].part}...)`;
     chip.textContent = label;
     chip.onclick = ()=>{
       setCurrentRecordIndex(i);
@@ -434,7 +490,6 @@ async function syncCaseToSupabase() {
   showToast("✅ 雲端同步完成", "success");
 }
 
-// Initialization
 function switchTab(key){
   $$(".tab-btn").forEach(b=>b.classList.toggle("active", b.dataset.target===`page-${key}`));
   $$(".page").forEach(p=>p.classList.remove("active"));
@@ -443,10 +498,7 @@ function switchTab(key){
   if(key==="therapist") { 
     renderSummary(); 
     if(window.renderVasChart) window.renderVasChart();
-    // [修改] 預設選取第一個子分頁 (Subjective)
     switchSubTab("therapist", "subjective");
-    
-    // ROM Restore
     const t = loadTherapist();
     const key = Object.keys(t).find(k=>k.includes("_"));
     if(key) { const joint = key.split("_")[0]; $("#rom-joint-select").value = joint; renderRomInputs(joint); }
@@ -472,6 +524,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
       switchSubTab("therapist", b.dataset.sub);
     });
   });
+  
+  // Pain Part Add Button
+  $("#btn-add-pain-part")?.addEventListener("click", addPainPart);
+
   $("#dob")?.addEventListener("change", (e)=>{ $("#calculated-age").textContent = calculateAge(e.target.value) + " 歲"; triggerAutoSave(); });
   $("#rom-joint-select")?.addEventListener("change", (e)=>{ renderRomInputs(e.target.value); });
   document.addEventListener("click", (e)=>{
@@ -481,13 +537,16 @@ document.addEventListener("DOMContentLoaded", ()=>{
   });
   $("input,textarea").forEach(el=>el.addEventListener("input", triggerAutoSave));
   $("#case-search")?.addEventListener("input", renderCaseList);
-  $("#btn-clear")?.addEventListener("click", ()=>{ if(confirm("清除暫存？")) { localStorage.clear(); location.reload(); }});
   
-  // [修改] 個案頁「交給治療師」-> 跳轉
-  $("#btn-goto-therapist")?.addEventListener("click", ()=>{ const res = upsertCurrentCaseAndRecord({ markDone:false }); if(res) switchTab("therapist"); });
+  // Correctly bind button events using getElementById
+  const btnClear = document.getElementById("btn-clear");
+  if(btnClear) btnClear.addEventListener("click", ()=>{ if(confirm("清除暫存？")) { localStorage.clear(); location.reload(); }});
   
-  // [修改] 治療師頁「完成評估」-> 儲存但不跳頁
-  $("#btn-mark-done")?.addEventListener("click", async ()=>{ 
+  const btnGoTherapist = document.getElementById("btn-goto-therapist");
+  if(btnGoTherapist) btnGoTherapist.addEventListener("click", ()=>{ const res = upsertCurrentCaseAndRecord({ markDone:false }); if(res) switchTab("therapist"); });
+  
+  const btnMarkDone = document.getElementById("btn-mark-done");
+  if(btnMarkDone) btnMarkDone.addEventListener("click", async ()=>{ 
     const res = upsertCurrentCaseAndRecord({ markDone:true }); 
     if(res) { 
       showToast("同步中...", "info"); 
@@ -495,7 +554,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
       showToast("✅ 評估已完成並同步！", "success");
     }
   });
-  $("#btn-back-client")?.addEventListener("click", ()=>switchTab("client"));
+  
+  const btnBackClient = document.getElementById("btn-back-client");
+  if(btnBackClient) btnBackClient.addEventListener("click", ()=>switchTab("client"));
 
   renderClientUI(loadClient());
   renderTherapistUI(loadTherapist());
