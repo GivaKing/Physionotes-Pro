@@ -26,16 +26,17 @@ export const AiGapAnalysis: React.FC<AiGapAnalysisProps> = ({ client, visit, tDa
         setSuggestions(null);
 
         try {
-            // Fix: Check process.env.API_KEY first as per strict instructions, fall back to Vite env
-            const apiKey = (typeof process !== "undefined" && process.env && process.env.API_KEY) || (import.meta.env && import.meta.env.VITE_API_KEY) || '';
+            // VITE SPECIFIC FIX: 
+            // Vite requires 'import.meta.env' and the variable MUST start with 'VITE_'.
+            // On Vercel, after adding the env var, you MUST REDEPLOY for it to take effect.
+            const apiKey = import.meta.env.VITE_API_KEY;
             
             if (!apiKey) {
-                throw new Error("API Key 尚未設定 (請設定 process.env.API_KEY 或 VITE_API_KEY)");
+                throw new Error("請確認 Vercel 環境變數 VITE_API_KEY 已設定並重新部署。");
             }
             const ai = new GoogleGenAI({ apiKey });
             
             // SECURITY: Sanitize PII. Only send clinically relevant data.
-            // Removed: client.name, client.phone, client.email
             const safeClientInfo = `Gender: ${client.gender}, Age: ${calculateAge(client.dob)}, Job: ${client.job}`;
             
             const prompt = `
@@ -66,7 +67,7 @@ export const AiGapAnalysis: React.FC<AiGapAnalysisProps> = ({ client, visit, tDa
             setSuggestions(cleanText || "無特別建議。");
         } catch (error: any) {
             console.error("AI Gap Analysis Error:", error);
-            setSuggestions(`分析連線失敗: ${error.message || '未知錯誤'}`);
+            setSuggestions(`連線失敗: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -105,11 +106,11 @@ export const AiGapAnalysis: React.FC<AiGapAnalysisProps> = ({ client, visit, tDa
 
             {suggestions && (
                 <div className="px-5 pb-5 animate-fade-in">
-                    <div className="bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+                    <div className={`bg-amber-50/50 p-3 rounded-xl border ${suggestions.includes('連線失敗') ? 'border-red-200 bg-red-50' : 'border-amber-100'}`}>
                         <ul className="space-y-1.5">
                             {suggestions.split('\n').filter(s => s.trim()).map((line, i) => (
-                                <li key={i} className="text-xs font-bold text-slate-700 flex items-start gap-2">
-                                    <span className="text-amber-500 mt-0.5">➤</span>
+                                <li key={i} className={`text-xs font-bold flex items-start gap-2 ${suggestions.includes('連線失敗') ? 'text-red-600' : 'text-slate-700'}`}>
+                                    <span className="text-amber-500 mt-0.5">{suggestions.includes('連線失敗') ? '⚠️' : '➤'}</span>
                                     <span>{line.replace(/^[-*•]\s*/, '')}</span>
                                 </li>
                             ))}
