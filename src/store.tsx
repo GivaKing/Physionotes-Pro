@@ -54,8 +54,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const checkUser = async () => {
     try {
-      // 1. Safety Timeout: If Supabase doesn't respond in 5 seconds, stop loading to prevent infinite hang.
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 5000));
+      // 1. Safety Timeout: If Supabase doesn't respond in 2 seconds, stop loading to prevent infinite hang.
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 2000));
       const sessionPromise = (supabase.auth as any).getSession();
 
       const { data: { session }, error: sessionError } = await Promise.race([sessionPromise, timeoutPromise]) as any;
