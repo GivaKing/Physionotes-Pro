@@ -41,16 +41,17 @@ export const AiClinicalInsight: React.FC<AiClinicalInsightProps> = ({ client, vi
         }, 1500);
 
         try {
-            // Fix: Check process.env.API_KEY first as per strict instructions, fall back to Vite env
-            const apiKey = (typeof process !== "undefined" && process.env && process.env.API_KEY) || (import.meta.env && import.meta.env.VITE_API_KEY) || '';
+            // VITE SPECIFIC FIX: 
+            // Vite requires 'import.meta.env' and the variable MUST start with 'VITE_'.
+            // On Vercel, after adding the env var, you MUST REDEPLOY for it to take effect.
+            const apiKey = import.meta.env.VITE_API_KEY;
             
             if (!apiKey) {
-                throw new Error("API Key 尚未設定 (請設定 process.env.API_KEY 或 VITE_API_KEY)");
+                throw new Error("API Key 未偵測到。請確認 Vercel 環境變數 VITE_API_KEY 已設定，並已執行 Redeploy (重新部署)。");
             }
             const ai = new GoogleGenAI({ apiKey });
             
             // SECURITY: Sanitize PII. Only send clinically relevant data.
-            // Removed: client.name, client.phone, client.email
             const safeClientInfo = `Gender: ${client.gender}, Age: ${calculateAge(client.dob)}, Job: ${client.job}`;
 
             const prompt = `
@@ -91,7 +92,7 @@ export const AiClinicalInsight: React.FC<AiClinicalInsightProps> = ({ client, vi
             setInsight(cleanText || "無法生成洞察，請稍後再試。");
         } catch (error: any) {
             console.error("AI Insight Error:", error);
-            setInsight(`AI 分析過程出錯: ${error.message || '未知錯誤'}`);
+            setInsight(`錯誤: ${error.message}`);
         } finally {
             clearInterval(interval);
             setLoading(false);
@@ -150,23 +151,31 @@ export const AiClinicalInsight: React.FC<AiClinicalInsightProps> = ({ client, vi
                     <div className="animate-fade-in space-y-6">
                         <div className="bg-white/80 backdrop-blur-md p-8 rounded-[2rem] border border-white shadow-inner max-h-[600px] overflow-y-auto no-scrollbar">
                             <div className="space-y-8">
-                                {insight.split('\n').filter(l => l.trim()).map((line, i) => {
-                                    // Check if line looks like a major header (e.g., "一、" or "臨床")
-                                    const isHeader = /^([一二三四五六七八九十]|[0-9])、/.test(line.trim()) || line.trim().endsWith(':') || line.trim().endsWith('：');
-                                    
-                                    if (isHeader) {
+                                {/* Error State Styling */}
+                                {insight.startsWith('錯誤') ? (
+                                    <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-bold flex items-center gap-3">
+                                        <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        <div>{insight}</div>
+                                    </div>
+                                ) : (
+                                    insight.split('\n').filter(l => l.trim()).map((line, i) => {
+                                        // Check if line looks like a major header (e.g., "一、" or "臨床")
+                                        const isHeader = /^([一二三四五六七八九十]|[0-9])、/.test(line.trim()) || line.trim().endsWith(':') || line.trim().endsWith('：');
+                                        
+                                        if (isHeader) {
+                                            return (
+                                                <h5 key={i} className="text-lg font-black text-indigo-900 border-l-4 border-indigo-600 pl-4 mt-8 first:mt-0 mb-4">
+                                                    {line.replace(/：|:$/, '')}
+                                                </h5>
+                                            );
+                                        }
                                         return (
-                                            <h5 key={i} className="text-lg font-black text-indigo-900 border-l-4 border-indigo-600 pl-4 mt-8 first:mt-0 mb-4">
-                                                {line.replace(/：|:$/, '')}
-                                            </h5>
+                                            <p key={i} className="text-slate-600 leading-[1.8] text-base font-medium text-justify">
+                                                {line}
+                                            </p>
                                         );
-                                    }
-                                    return (
-                                        <p key={i} className="text-slate-600 leading-[1.8] text-base font-medium text-justify">
-                                            {line}
-                                        </p>
-                                    );
-                                })}
+                                    })
+                                )}
                             </div>
                         </div>
                         
