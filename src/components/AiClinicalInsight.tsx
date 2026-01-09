@@ -42,8 +42,6 @@ export const AiClinicalInsight: React.FC<AiClinicalInsightProps> = ({ client, vi
 
         try {
             // VITE SPECIFIC FIX: 
-            // Vite requires 'import.meta.env' and the variable MUST start with 'VITE_'.
-            // On Vercel, after adding the env var, you MUST REDEPLOY for it to take effect.
             const apiKey = import.meta.env.VITE_API_KEY;
             
             if (!apiKey) {
@@ -92,7 +90,16 @@ export const AiClinicalInsight: React.FC<AiClinicalInsightProps> = ({ client, vi
             setInsight(cleanText || "無法生成洞察，請稍後再試。");
         } catch (error: any) {
             console.error("AI Insight Error:", error);
-            setInsight(`錯誤: ${error.message}`);
+            const rawMsg = error.message || '';
+            let friendlyMsg = rawMsg;
+
+            if (rawMsg.includes('429') || rawMsg.includes('Quota') || rawMsg.includes('RESOURCE_EXHAUSTED')) {
+                friendlyMsg = "API 使用量已達上限 (429)。此為 Google 免費版模型限制，請稍候 30-60 秒再試，或檢查您的 Google Cloud 配額。";
+            } else if (rawMsg.includes('API key')) {
+                friendlyMsg = "API Key 無效或未設定。";
+            }
+
+            setInsight(`錯誤: ${friendlyMsg}`);
         } finally {
             clearInterval(interval);
             setLoading(false);
@@ -153,9 +160,16 @@ export const AiClinicalInsight: React.FC<AiClinicalInsightProps> = ({ client, vi
                             <div className="space-y-8">
                                 {/* Error State Styling */}
                                 {insight.startsWith('錯誤') ? (
-                                    <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-bold flex items-center gap-3">
-                                        <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                        <div>{insight}</div>
+                                    <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-bold flex items-start gap-3">
+                                        <svg className="w-6 h-6 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        <div className="flex-1">
+                                            {insight}
+                                            {insight.includes('429') && (
+                                                <button onClick={generateInsight} className="block mt-2 text-xs bg-white border border-red-200 px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors">
+                                                    重試
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 ) : (
                                     insight.split('\n').filter(l => l.trim()).map((line, i) => {
