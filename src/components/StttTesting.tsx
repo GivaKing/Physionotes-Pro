@@ -56,9 +56,10 @@ export const StttTesting = ({ tData, setTData }: { tData: TherapistData; setTDat
                 <button 
                     type="button"
                     onClick={() => setIsModalOpen(true)}
-                    className="text-[11px] bg-red-50 text-red-700 px-2.5 py-1 rounded-lg font-bold border border-red-200 shadow-sm hover:bg-red-100 transition-colors"
+                    className="text-[11px] bg-red-50 text-red-700 px-2.5 py-1 rounded-lg font-bold border border-red-200 shadow-sm hover:bg-red-100 transition-colors flex items-center gap-1 shrink-0 whitespace-nowrap"
                 >
-                    + 新增部位
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M5 12h14"/></svg>
+                    新增部位
                 </button>
             </div>
 
