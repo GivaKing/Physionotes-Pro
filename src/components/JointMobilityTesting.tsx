@@ -165,20 +165,32 @@ export const JointMobilityTesting = ({ tData, setTData }: { tData: TherapistData
             {/* Main Modal */}
             {isModalOpen && (
                 <Portal>
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-0 md:p-4">
                         <div 
                             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" 
                             onClick={() => setIsModalOpen(false)}
                         />
-                        <div className="relative z-10 bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
+                        {/* Modified: Full screen on mobile, rounded on desktop */}
+                        <div className="relative z-10 bg-white w-full h-full md:h-auto md:max-h-[90vh] md:max-w-4xl md:rounded-2xl shadow-2xl overflow-hidden animate-scale-in flex flex-col">
                             <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                                <h3 className="font-bold text-slate-800 text-lg">Joint Play & End-Feel</h3>
-                                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-red-500 p-1">✕</button>
+                                <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+                                    <span className="md:hidden">
+                                        {activeRegion ? (
+                                            <button onClick={() => setActiveRegion(null)} className="mr-2 text-slate-500 hover:text-slate-800">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                                            </button>
+                                        ) : null}
+                                    </span>
+                                    {activeRegion ? activeRegion.split(' ')[0] : 'Joint Tests'}
+                                </h3>
+                                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-red-500 p-1 rounded-full hover:bg-slate-100">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
                             </div>
                             
-                            <div className="flex flex-1 min-h-0">
-                                {/* Left Sidebar: Region Selector */}
-                                <div className="w-56 bg-slate-50 border-r border-slate-200 overflow-y-auto p-2 space-y-4">
+                            <div className="flex flex-1 min-h-0 relative">
+                                {/* Left Sidebar: Region Selector (Responsive) */}
+                                <div className={`w-full md:w-56 bg-slate-50 border-r border-slate-200 overflow-y-auto p-2 space-y-4 ${activeRegion ? 'hidden md:block' : 'block'}`}>
                                     {REGION_GROUPS.map(group => (
                                         <div key={group.label}>
                                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 px-2">{group.label}</div>
@@ -190,7 +202,7 @@ export const JointMobilityTesting = ({ tData, setTData }: { tData: TherapistData
                                                         <div key={region} className="relative group">
                                                             <button
                                                                 onClick={() => handleRegionClick(region)}
-                                                                className={`w-full text-left px-3 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-between
+                                                                className={`w-full text-left px-3 py-3 md:py-2.5 text-sm md:text-xs font-bold rounded-xl transition-all flex items-center justify-between
                                                                 ${isActive 
                                                                     ? 'bg-white shadow-sm text-sky-700 border border-sky-100' 
                                                                     : 'text-slate-600 hover:bg-slate-100 border border-transparent'}
@@ -204,14 +216,14 @@ export const JointMobilityTesting = ({ tData, setTData }: { tData: TherapistData
                                                                     </div>
                                                                 )}
                                                             </button>
-                                                            {/* Delete Button (Replaces Green Dot on Hover) */}
+                                                            {/* Delete Button */}
                                                             {isAdded && (
                                                                 <button 
                                                                     onClick={(e) => { e.stopPropagation(); removeRegion(region); }}
-                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 hidden group-hover:flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors z-10"
+                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 md:w-6 md:h-6 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors z-10 md:hidden md:group-hover:flex"
                                                                     title="Remove Region"
                                                                 >
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                                                 </button>
                                                             )}
                                                         </div>
@@ -222,33 +234,33 @@ export const JointMobilityTesting = ({ tData, setTData }: { tData: TherapistData
                                     ))}
                                 </div>
 
-                                {/* Right Content Area */}
-                                <div className="flex-1 flex flex-col min-w-0 bg-white">
+                                {/* Right Content Area (Responsive) */}
+                                <div className={`flex-1 flex flex-col min-w-0 bg-white ${!activeRegion ? 'hidden md:flex' : 'flex'}`}>
                                     {activeRegion && mobilityData[activeRegion] ? (
                                         <>
                                             {/* Tabs & Capsular Analysis */}
-                                            <div className="border-b border-slate-100 px-6 pt-4">
+                                            <div className="border-b border-slate-100 px-4 md:px-6 pt-2">
                                                 <div className="flex justify-between items-end">
-                                                    <div className="flex gap-8">
+                                                    <div className="flex gap-4 md:gap-8 w-full">
                                                         <button 
                                                             onClick={() => setActiveTab('play')}
-                                                            className={`pb-3 text-sm font-bold transition-all border-b-2 ${activeTab === 'play' ? 'text-sky-600 border-sky-500' : 'text-slate-400 border-transparent hover:text-slate-600'}`}
+                                                            className={`flex-1 md:flex-initial pb-3 text-sm font-bold transition-all border-b-2 text-center md:text-left ${activeTab === 'play' ? 'text-sky-600 border-sky-500' : 'text-slate-400 border-transparent hover:text-slate-600'}`}
                                                         >
-                                                            Joint Play (Kaltenborn)
+                                                            Joint Play
                                                         </button>
                                                         <button 
                                                             onClick={() => setActiveTab('endfeel')}
-                                                            className={`pb-3 text-sm font-bold transition-all border-b-2 ${activeTab === 'endfeel' ? 'text-sky-600 border-sky-500' : 'text-slate-400 border-transparent hover:text-slate-600'}`}
+                                                            className={`flex-1 md:flex-initial pb-3 text-sm font-bold transition-all border-b-2 text-center md:text-left ${activeTab === 'endfeel' ? 'text-sky-600 border-sky-500' : 'text-slate-400 border-transparent hover:text-slate-600'}`}
                                                         >
-                                                            End-Feel (Cyriax)
+                                                            End-Feel
                                                         </button>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Scrollable Content */}
-                                            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30">
-                                                {/* Capsular Analysis (Shown at top for context if relevant) */}
+                                            <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/30">
+                                                {/* Capsular Analysis */}
                                                 <div className="mb-6">
                                                     <CapsularAnalysis 
                                                         region={activeRegion} 
@@ -313,7 +325,7 @@ export const JointMobilityTesting = ({ tData, setTData }: { tData: TherapistData
                                     ) : (
                                         <div className="flex-1 flex flex-col items-center justify-center text-slate-300">
                                             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4 text-slate-200"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>
-                                            <span className="text-sm font-bold">請從左側選擇檢查部位</span>
+                                            <span className="text-sm font-bold">請選擇檢查部位</span>
                                         </div>
                                     )}
                                 </div>
