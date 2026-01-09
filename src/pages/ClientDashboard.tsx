@@ -263,9 +263,7 @@ export const ClientDashboard = () => {
             style: {
                 fontVariant: 'normal',
                 textRendering: 'geometricPrecision',
-                WebkitFontSmoothing: 'antialiased',
-                MozOsxFontSmoothing: 'grayscale'
-            }
+            } as any
         });
         const sourceCtx = sourceCanvas.getContext('2d');
         if (!sourceCtx) throw new Error("Canvas context failed");
@@ -363,10 +361,8 @@ export const ClientDashboard = () => {
             style: {
                 fontVariant: 'normal',
                 textRendering: 'geometricPrecision',
-                WebkitFontSmoothing: 'antialiased',
-                MozOsxFontSmoothing: 'grayscale',
                 transform: 'scale(1)'
-            }
+            } as any
         });
         const sourceCtx = sourceCanvas.getContext('2d');
         if (!sourceCtx) throw new Error("Canvas context failed");
@@ -463,8 +459,7 @@ export const ClientDashboard = () => {
         style: {
             fontVariant: 'normal',
             textRendering: 'geometricPrecision',
-            WebkitFontSmoothing: 'antialiased',
-        }
+        } as any
       });
       
       const link = document.createElement('a');
