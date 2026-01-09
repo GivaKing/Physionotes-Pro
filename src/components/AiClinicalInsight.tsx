@@ -41,10 +41,11 @@ export const AiClinicalInsight: React.FC<AiClinicalInsightProps> = ({ client, vi
         }, 1500);
 
         try {
-            // Fix: Use safe access for import.meta.env
-            const apiKey = (import.meta.env && import.meta.env.VITE_API_KEY) || '';
+            // Fix: Check process.env.API_KEY first as per strict instructions, fall back to Vite env
+            const apiKey = (typeof process !== "undefined" && process.env && process.env.API_KEY) || (import.meta.env && import.meta.env.VITE_API_KEY) || '';
+            
             if (!apiKey) {
-                throw new Error("API Key 尚未設定 (VITE_API_KEY)");
+                throw new Error("API Key 尚未設定 (請設定 process.env.API_KEY 或 VITE_API_KEY)");
             }
             const ai = new GoogleGenAI({ apiKey });
             
