@@ -37,11 +37,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Using any cast to bypass potential type mismatch with supabase-js versions
     const { data: authListener } = (supabase.auth as any).onAuthStateChange(async (event: string, session: any) => {
       if (event === 'SIGNED_IN' && session) {
-        await checkUser();
+        // Do not force reload here to prevent double-fetching race conditions
+        // checkUser is sufficient or handle specific logic
+        if (!user) await checkUser(); 
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setCases([]);
         setActiveCaseId(null);
+        setLoading(false);
       }
     });
     return () => {
@@ -51,14 +54,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const checkUser = async () => {
     try {
-      const { data: { session }, error: sessionError } = await (supabase.auth as any).getSession();
+      // 1. Safety Timeout: If Supabase doesn't respond in 5 seconds, stop loading to prevent infinite hang.
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 5000));
+      const sessionPromise = (supabase.auth as any).getSession();
+
+      const { data: { session }, error: sessionError } = await Promise.race([sessionPromise, timeoutPromise]) as any;
       
       if (sessionError || !session) {
         setLoading(false);
         return;
       }
 
-      // Fetch Profile
+      // Fetch Profile (Non-blocking UI optimization: We can start this but allow UI to render if needed, though profile is fast)
       let profile = null;
       try {
           const { data, error } = await supabase.from('profiles').select('*').eq('user_id', session.user.id).single();
@@ -76,10 +83,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         maxPatients: profile?.patient_trial_limit || 10
       });
       
-      await loadCasesInternal(session.user.id);
+      // 2. CRITICAL OPTIMIZATION: 
+      // Stop loading immediately after Auth is confirmed. 
+      // Do NOT wait for `loadCasesInternal` (large data) to finish before showing the UI.
+      setLoading(false);
+
+      // 3. Load Data in Background
+      loadCasesInternal(session.user.id);
+
     } catch (err) {
       console.error("Auth init error:", err);
-    } finally {
+      // Ensure we stop loading even if everything explodes
       setLoading(false);
     }
   };
@@ -181,6 +195,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUser(null);
         setCases([]);
         setActiveCaseId(null);
+        // Ensure loading is false after logout
+        setLoading(false);
     }
   };
 
