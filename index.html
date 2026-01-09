@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://api.iconify.design/medical-icon:i-physical-therapy.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>PhysioNotes Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+                900: '#1e3a8a',
+              },
+              slate: {
+                850: '#1e293b',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            },
+            keyframes: {
+              'emergency-pulse': {
+                '0%, 100%': { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.2)' },
+                '50%': { backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.5)' },
+              },
+              'indicator-blink': {
+                '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+                '50%': { opacity: '0.4', transform: 'scale(0.8)' },
+              }
+            },
+            animation: {
+              'emergency-pulse': 'emergency-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'indicator-blink': 'indicator-blink 1s ease-in-out infinite',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+      
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* PRINT OPTIMIZATION FOR VECTOR PDF */
+      @media print {
+        @page { 
+          size: A4; 
+          margin: 12mm 15mm; /* 標準 A4 邊距，確保內容不被切邊 */
+        }
+        
+        /* 隱藏網頁介面 */
+        .no-print, .no-print * { 
+          display: none !important; 
+          height: 0 !important;
+          width: 0 !important;
+          overflow: hidden !important;
+        }
+
+        /* 顯示報表層 */
+        .print-only { 
+          display: block !important; 
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+
+        body { 
+          background: white; 
+          margin: 0; 
+          padding: 0;
+          /* 強制列印背景圖形 (讓圖表顏色正確顯示) */
+          -webkit-print-color-adjust: exact !important; 
+          print-color-adjust: exact !important; 
+        }
+
+        /* 智慧分頁控制 */
+        h1, h2, h3, h4, h5 { 
+          break-after: avoid-page; /* 標題後盡量不換頁 */
+        }
+        
+        table, figure, .card, .break-inside-avoid {
+          break-inside: avoid; /* 區塊內盡量不換頁 */
+        }
+
+        /* 確保文字銳利度 */
+        * {
+          text-rendering: geometricPrecision;
+        }
+      }
+      
+      /* 螢幕顯示時隱藏列印層 */
+      .print-only { display: none; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.90.1",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "html-to-image": "https://esm.sh/html-to-image@^1.11.13",
+    "jspdf": "https://esm.sh/jspdf@^4.0.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

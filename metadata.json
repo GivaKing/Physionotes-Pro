@@ -1,0 +1,5 @@
+{
+  "name": "PhysioNotes Pro",
+  "description": "A professional-grade Physical Therapy assessment tool with patient management, SOAP notes, visual charting, and medical report generation.",
+  "requestFramePermissions": []
+}
