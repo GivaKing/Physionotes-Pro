@@ -54,9 +54,10 @@ export const NeuralTensionTesting = ({ tData, setTData }: { tData: TherapistData
                 <button 
                     type="button"
                     onClick={() => setIsModalOpen(true)}
-                    className="text-[11px] bg-teal-50 text-teal-700 px-2.5 py-1 rounded-lg font-bold border border-teal-200 shadow-sm hover:bg-teal-100 transition-colors"
+                    className="text-[11px] bg-teal-50 text-teal-700 px-2.5 py-1 rounded-lg font-bold border border-teal-200 shadow-sm hover:bg-teal-100 transition-colors flex items-center gap-1 shrink-0 whitespace-nowrap"
                 >
-                    + 新增測試
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 5v14M5 12h14"/></svg>
+                    新增測試
                 </button>
             </div>
 
