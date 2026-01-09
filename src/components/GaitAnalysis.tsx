@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { TherapistData, GaitDetails, PHASES } from '../types';
 import { TextArea, Label } from './Input';
@@ -145,33 +144,42 @@ const ClinicalGaitSvg = ({ phaseId, isSelected }: { phaseId: string, isSelected:
     };
 
     return (
-        <svg viewBox="0 0 80 80" className="w-full h-full overflow-visible drop-shadow-sm">
-            {/* Ground Line - Simple and clean */}
-            <line x1="-10" y1="70" x2="90" y2="70" stroke="#e2e8f0" strokeWidth="2" strokeLinecap="round" />
+        <svg viewBox="0 0 80 80" className="w-full h-full overflow-hidden drop-shadow-sm">
+            {/* Ground Line - Constrained to ViewBox to prevent overflow overlap */}
+            <line x1="2" y1="70" x2="78" y2="70" stroke="#e2e8f0" strokeWidth="2" strokeLinecap="round" />
             {figures[phaseId]}
         </svg>
     );
 };
 
-// --- Visual Component: Clean Gait Strip ---
+// --- Visual Component: Responsive Fit-Screen Gait Strip ---
 const GaitCycleVisual = ({ selectedPhase, onSelect }: { selectedPhase: string; onSelect: (id: string) => void }) => {
     return (
-        <div className="w-full overflow-x-auto no-scrollbar pb-2">
-            {/* Height optimized to h-48 (approx 192px) - Not too tall, not squashed */}
-            <div className="min-w-[800px] h-48 relative bg-white border border-slate-200 rounded-xl overflow-hidden select-none shadow-sm mt-2">
+        <div className="w-full">
+            {/* 
+                Responsive Layout Strategy:
+                - w-full to fit parent container width.
+                - flex layout with flex-1 for equal width columns.
+                - Internal elements scale down to fit (SVG aspect ratio).
+            */}
+            <div className="w-full relative bg-white border border-slate-200 rounded-xl overflow-hidden select-none shadow-sm mt-2">
                 
-                {/* Top Phase Header Bar - Clear Separation */}
-                <div className="absolute top-0 left-0 right-0 h-8 flex border-b border-slate-100 z-10">
-                    <div className="w-[60%] h-full bg-orange-50 flex items-center px-4 border-r border-orange-100">
-                        <span className="text-[10px] font-black text-orange-600 tracking-widest uppercase">Stance Phase (60%)</span>
+                {/* Phase Header Bar */}
+                <div className="flex h-8 w-full border-b border-slate-100">
+                    {/* 
+                       Stance Phase: 5 items out of 8 = 62.5% 
+                       Swing Phase: 3 items out of 8 = 37.5%
+                    */}
+                    <div className="w-[62.5%] h-full bg-orange-50 flex items-center justify-center px-1 border-r border-orange-100 transition-all">
+                        <span className="text-[9px] sm:text-[10px] font-black text-orange-600 tracking-widest uppercase truncate">Stance Phase (60%)</span>
                     </div>
-                    <div className="w-[40%] h-full bg-blue-50 flex items-center justify-end px-4">
-                        <span className="text-[10px] font-black text-blue-600 tracking-widest uppercase">Swing Phase (40%)</span>
+                    <div className="w-[37.5%] h-full bg-blue-50 flex items-center justify-center px-1 transition-all">
+                        <span className="text-[9px] sm:text-[10px] font-black text-blue-600 tracking-widest uppercase truncate">Swing Phase (40%)</span>
                     </div>
                 </div>
 
-                {/* Phase Items Grid */}
-                <div className="flex h-full pt-8">
+                {/* Phase Items Grid - Flexbox ensures they fit 100% width */}
+                <div className="flex w-full pt-3 pb-3">
                     {PHASES.map((phase) => {
                         const isSelected = selectedPhase === phase.id;
                         const isStance = phase.type === 'Stance';
@@ -181,28 +189,36 @@ const GaitCycleVisual = ({ selectedPhase, onSelect }: { selectedPhase: string; o
                             <button 
                                 key={phase.id}
                                 onClick={() => onSelect(phase.id)}
-                                className={`flex-1 flex flex-col items-center justify-between pb-3 relative group transition-all duration-300 border-r border-slate-50 last:border-0
-                                    ${isSelected ? 'bg-white z-20' : 'hover:bg-slate-50'}
+                                className={`flex-1 flex flex-col items-center justify-start relative group transition-all duration-300 border-r border-slate-50 last:border-0 min-w-0
+                                    ${isSelected ? 'bg-white z-10' : 'hover:bg-slate-50'}
                                 `}
                             >
-                                {/* Active Indicator Top */}
+                                {/* Active Indicator */}
                                 {isSelected && (
-                                    <div className={`absolute top-0 inset-x-0 h-1 ${isStance ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
+                                    <div className={`absolute -top-3 inset-x-1 h-1 ${isStance ? 'bg-orange-500' : 'bg-blue-500'} rounded-b-md`}></div>
                                 )}
 
-                                {/* Main Figure Area - Increased Padding to prevent text overlap */}
-                                <div className={`flex-1 w-full flex items-center justify-center p-4 transition-transform duration-300 ${isSelected ? 'scale-110 opacity-100' : 'scale-90 opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-90'}`}>
-                                    <div className="w-24 h-24">
-                                        <ClinicalGaitSvg phaseId={phase.id} isSelected={isSelected} />
-                                    </div>
+                                {/* Main Figure Area - Responsive Sizing 
+                                    - aspect-square maintains shape.
+                                    - w-full allows it to fill the column.
+                                    - max-w limits it on large screens.
+                                    - p-1 reduces padding to prevent overflow on small screens.
+                                */}
+                                <div className={`w-full aspect-square max-w-[80px] sm:max-w-[100px] flex items-center justify-center p-0.5 sm:p-2 transition-transform duration-300 ${isSelected ? 'scale-110 opacity-100' : 'scale-90 opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-90'}`}>
+                                    <ClinicalGaitSvg phaseId={phase.id} isSelected={isSelected} />
                                 </div>
 
-                                {/* Label Area - Separated from SVG */}
-                                <div className="text-center w-full px-1">
-                                    <div className={`text-[10px] font-black uppercase tracking-tight leading-none mb-1 transition-colors ${isSelected ? themeColor : 'text-slate-400'}`}>
+                                {/* Label Area - Responsive Text (Fixed for Single Line) */}
+                                <div className="text-center w-full px-0.5 mt-1 overflow-hidden">
+                                    <div className={`
+                                        text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] 
+                                        font-black uppercase tracking-tighter leading-none mb-0.5 
+                                        transition-colors whitespace-nowrap overflow-hidden text-ellipsis w-full
+                                        ${isSelected ? themeColor : 'text-slate-400'}
+                                    `}>
                                         {phase.name}
                                     </div>
-                                    <div className={`text-[9px] font-mono transition-colors ${isSelected ? 'text-slate-500 font-bold' : 'text-slate-300'}`}>
+                                    <div className={`text-[7px] sm:text-[8px] font-mono transition-colors ${isSelected ? 'text-slate-500 font-bold' : 'text-slate-300'}`}>
                                         {phase.pct}
                                     </div>
                                 </div>
