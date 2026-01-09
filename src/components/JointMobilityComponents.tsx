@@ -125,9 +125,9 @@ export const JointPlayRow: React.FC<JointPlayRowProps> = ({ joint, data, onUpdat
     return (
         <div className="border border-slate-100 rounded-xl p-3 hover:border-slate-200 transition-colors bg-white">
             <div className="flex justify-between items-center mb-2.5">
-                <div className="text-xs font-bold text-slate-700">{joint}</div>
+                <div className="text-xs font-bold text-slate-700 truncate mr-2">{joint}</div>
                 {data.grade && (
-                    <span className={`text-[10px] px-2 py-0.5 rounded font-black ${
+                    <span className={`text-[10px] px-2 py-0.5 rounded font-black shrink-0 ${
                         data.grade === '3' ? 'bg-green-100 text-green-700' : 
                         (data.grade === '0' || data.grade === '6') ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
                     }`}>
@@ -135,11 +135,10 @@ export const JointPlayRow: React.FC<JointPlayRowProps> = ({ joint, data, onUpdat
                     </span>
                 )}
             </div>
-            <div className="flex items-center justify-between">
-                <div className="flex gap-1">
+            <div className="flex flex-wrap items-center justify-between gap-y-2">
+                <div className="flex flex-wrap gap-1">
                     {KALTENBORN_GRADES.map(g => {
                         const isSelected = data.grade === g.val;
-                        // Fixed size buttons that don't change dimensions on selection
                         return (
                             <button
                                 key={g.val}
@@ -157,18 +156,18 @@ export const JointPlayRow: React.FC<JointPlayRowProps> = ({ joint, data, onUpdat
                     })}
                 </div>
                 
-                <div className="w-px h-6 bg-slate-100 mx-2"></div>
-                
-                <button
-                    onClick={onTogglePain}
-                    className={`h-8 px-3 rounded-lg text-[10px] font-bold border-2 transition-all flex items-center gap-1.5 shrink-0
-                    ${data.painful 
-                        ? 'bg-red-50 text-red-600 border-red-200' 
-                        : 'bg-white text-slate-400 border-slate-100 hover:text-red-400 hover:border-red-100'}`}
-                >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                    Pain
-                </button>
+                <div className="w-full sm:w-auto flex items-center sm:pl-2 sm:border-l sm:border-slate-100 mt-1 sm:mt-0">
+                    <button
+                        onClick={onTogglePain}
+                        className={`h-8 w-full sm:w-auto px-3 rounded-lg text-[10px] font-bold border-2 transition-all flex items-center justify-center gap-1.5
+                        ${data.painful 
+                            ? 'bg-red-50 text-red-600 border-red-200' 
+                            : 'bg-white text-slate-400 border-slate-100 hover:text-red-400 hover:border-red-100'}`}
+                    >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        Pain
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -187,9 +186,10 @@ export const EndFeelRow: React.FC<EndFeelRowProps> = ({ motion, data, normalType
     return (
         <div className="bg-white p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors flex flex-col sm:flex-row sm:items-center gap-3">
             {/* Motion Name */}
-            <div className="w-24 shrink-0">
+            <div className="w-full sm:w-24 shrink-0 flex justify-between sm:block">
                 <span className="text-xs font-bold text-slate-700 block">{motion}</span>
-                {data.isAbnormal && <span className="text-[9px] text-red-500 font-bold">Abnormal</span>}
+                {data.isAbnormal && <span className="text-[9px] text-red-500 font-bold sm:hidden">Abnormal</span>}
+                {data.isAbnormal && <span className="text-[9px] text-red-500 font-bold hidden sm:inline">Abn</span>}
             </div>
             
             {/* Options */}
@@ -221,10 +221,10 @@ export const EndFeelRow: React.FC<EndFeelRowProps> = ({ motion, data, normalType
             </div>
 
             {/* Pain Toggle - Far Right */}
-            <div className="flex items-center pl-2 sm:border-l sm:border-slate-100 ml-auto">
+            <div className="flex items-center pl-0 sm:pl-2 sm:border-l sm:border-slate-100 ml-0 sm:ml-auto w-full sm:w-auto mt-1 sm:mt-0">
                 <button
                     onClick={onTogglePain}
-                    className={`h-7 px-3 rounded-md text-[10px] font-bold border transition-all flex items-center gap-1.5
+                    className={`h-7 w-full sm:w-auto px-3 rounded-md text-[10px] font-bold border transition-all flex items-center justify-center gap-1.5
                     ${data.painful 
                         ? 'bg-red-50 text-red-600 border-red-200' 
                         : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-white hover:text-red-400 hover:border-red-200'}`}
