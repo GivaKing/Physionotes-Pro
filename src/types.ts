@@ -380,16 +380,6 @@ export const STTT_OPTIONS: Record<string, string[]> = {
 
 // --- JOINT PLAY DATABASE ---
 export const JOINT_PLAY_DB: Record<string, string[]> = {
-  'Cervical (頸椎)': [
-    'OA Joint (C0-C1) Distraction', 'OA Joint (C0-C1) AP Glide', 'AA Joint (C1-C2) Rotation',
-    'C2-C7 Facet Joint UP-Slide (Flex)', 'C2-C7 Facet Joint Down-Slide (Ext)', 'C2-C7 PA Glide (Central)', 'C2-C7 PA Glide (Unilateral)'
-  ],
-  'Thoracic (胸椎)': [
-    'T-Spine PA Glide (Central)', 'T-Spine PA Glide (Unilateral)', 'Costovertebral Joint Glide', 'Costotransverse Joint Glide', 'Rib Springing'
-  ],
-  'Lumbar (腰椎)': [
-    'L-Spine PA Glide (Central)', 'L-Spine PA Glide (Unilateral)', 'L-Spine Rotation PPIVM', 'L-Spine Sidebend PPIVM'
-  ],
   'SIJ (薦髂關節)': [
     'Sacral Nutation', 'Sacral Counternutation', 'Ilium Anterior Rotation', 'Ilium Posterior Rotation'
   ],
@@ -416,6 +406,29 @@ export const JOINT_PLAY_DB: Record<string, string[]> = {
     'Talocrural Distraction', 'Talocrural Posterior Glide (DF)', 'Talocrural Anterior Glide (PF)',
     'Subtalar Joint Med/Lat Glide', 'Distal Tibiofibular AP/PA Glide', 'Midtarsal Joint Mobility', 'MTP/IP Joint Mobility'
   ]
+};
+
+// --- SPINE CONFIGURATION FOR GRANULAR ASSESSMENT ---
+export const SPINE_CONFIG: Record<string, { segments: string[], paivm: string[], ppivm: string[], combined: string[] }> = {
+    'Cervical (頸椎)': {
+        segments: ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7'], 
+        paivm: ['Central PA', 'Unilateral PA (L)', 'Unilateral PA (R)', 'Transverse Glide (L)', 'Transverse Glide (R)'],
+        ppivm: ['Flexion', 'Extension', 'Side Bend (L)', 'Side Bend (R)', 'Rotation (L)', 'Rotation (R)'],
+        // Left then Right for intuitive reading
+        combined: ['Closing Pattern (L)', 'Closing Pattern (R)', 'Opening Pattern (L)', 'Opening Pattern (R)']
+    },
+    'Thoracic (胸椎)': {
+        segments: Array.from({length: 12}, (_, i) => `T${i+1}`), 
+        paivm: ['Central PA', 'Unilateral PA (L)', 'Unilateral PA (R)', 'Rib Springing (L)', 'Rib Springing (R)'],
+        ppivm: ['Flexion', 'Extension', 'Side Bend (L)', 'Side Bend (R)', 'Rotation (L)', 'Rotation (R)'],
+        combined: ['Quadrant Ext (L)', 'Quadrant Ext (R)', 'Quadrant Flex (L)', 'Quadrant Flex (R)']
+    },
+    'Lumbar (腰椎)': {
+        segments: ['L1', 'L2', 'L3', 'L4', 'L5'], 
+        paivm: ['Central PA', 'Unilateral PA (L)', 'Unilateral PA (R)'],
+        ppivm: ['Flexion', 'Extension', 'Side Bend (L)', 'Side Bend (R)', 'Rotation (L)', 'Rotation (R)'],
+        combined: ['Quadrant Ext (L)', 'Quadrant Ext (R)', 'Quadrant Flex (L)', 'Quadrant Flex (R)']
+    }
 };
 
 // --- END FEEL DATABASE (Updated with more normal values) ---
@@ -447,18 +460,6 @@ export const END_FEEL_DB: Record<string, { motion: string, normal: string[] }[]>
     { motion: 'Dorsiflexion', normal: ['Firm'] }, { motion: 'Plantarflexion', normal: ['Firm'] },
     { motion: 'Inversion', normal: ['Firm'] }, { motion: 'Eversion', normal: ['Hard', 'Firm'] },
     { motion: 'Toe Flexion', normal: ['Firm'] }, { motion: 'Toe Extension', normal: ['Firm'] }
-  ],
-  'Cervical (頸椎)': [
-    { motion: 'Flexion', normal: ['Firm'] }, { motion: 'Extension', normal: ['Hard', 'Firm'] },
-    { motion: 'Side Bend', normal: ['Firm'] }, { motion: 'Rotation', normal: ['Firm'] }
-  ],
-  'Thoracic (胸椎)': [
-    { motion: 'Flexion', normal: ['Firm'] }, { motion: 'Extension', normal: ['Hard', 'Firm'] },
-    { motion: 'Side Bend', normal: ['Firm'] }, { motion: 'Rotation', normal: ['Firm'] }
-  ],
-  'Lumbar (腰椎)': [
-    { motion: 'Flexion', normal: ['Firm'] }, { motion: 'Extension', normal: ['Hard', 'Firm'] },
-    { motion: 'Side Bend', normal: ['Firm'] }, { motion: 'Rotation', normal: ['Firm'] }
   ],
   'SIJ (薦髂關節)': [
     { motion: 'Nutation', normal: ['Firm'] }, { motion: 'Counternutation', normal: ['Firm'] }
