@@ -50,6 +50,30 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
     return Number.isInteger(val) ? `${val}` : `${Math.floor(val)}+`;
   };
 
+  const formatPainDetail = (val?: string | string[]) => {
+      if (!val) return '';
+      
+      let types: string[] = [];
+      if (Array.isArray(val)) {
+          types = val;
+      } else if (typeof val === 'string') {
+          // Legacy handling
+          if (val === 'both') return ' (Con+Ecc)';
+          types = [val];
+      }
+      
+      if (types.length === 0) return '';
+
+      const labels = types.map(t => {
+          if (t === 'isometric') return 'Iso';
+          if (t === 'concentric') return 'Con';
+          if (t === 'eccentric') return 'Ecc';
+          return t;
+      });
+      
+      return ` (${labels.join('+')})`;
+  };
+
   // Increased font size for SubHeader: text-xs -> text-sm
   const SubHeader = ({ title }: { title: string }) => (
     <div className="mb-4 mt-6 border-b-2 border-slate-800 pb-1 break-after-avoid page-break-after-avoid">
@@ -389,7 +413,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                                                     const findings = [
                                                         res.activePain && 'Active Pain', 
                                                         res.passivePain && 'Passive Pain', 
-                                                        res.resistedPain && 'Resisted Pain', 
+                                                        res.resistedPain && `Resisted Pain${formatPainDetail(res.painDetail)}`, 
                                                         res.resistedWeak && 'Weakness'
                                                     ].filter(Boolean);
                                                     if (!findings.length) return null;
