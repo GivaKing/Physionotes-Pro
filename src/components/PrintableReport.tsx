@@ -365,37 +365,74 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                             </div>
                         )}
 
-                        {/* 3. Joint Mobility - text-xs -> text-sm */}
+                        {/* 3. Joint Mobility (Updated with Separation) */}
                         {r.therapist.jointMobility && typeof r.therapist.jointMobility === 'object' && Object.keys(r.therapist.jointMobility).length > 0 && (
                             <div className="break-inside-avoid section-container">
                                 <SubHeader title="Joint Mobility" />
                                 <div className="space-y-4">
-                                    {Object.entries(r.therapist.jointMobility).map(([region, data]: [string, any]) => (
-                                        <div key={region} className="break-inside-avoid">
-                                            <div className="text-sm font-bold text-slate-900 mb-1">{region}</div>
-                                            
-                                            {/* Joint Play */}
-                                            {data.jointPlay && Object.keys(data.jointPlay).length > 0 && (
-                                                <div className="text-sm mb-1 pl-2">
-                                                    <span className="font-bold text-slate-700 mr-1">Joint Play:</span>
-                                                    {Object.entries(data.jointPlay).map(([joint, val]: [string, any]) => 
-                                                        `${joint} (${val.grade}${val.painful ? ' Pain' : ''})`
-                                                    ).join(' | ')}
-                                                </div>
-                                            )}
-                                            
-                                            {/* End Feel */}
-                                            {data.endFeel && Object.values(data.endFeel).some((v: any) => v.isAbnormal || v.painful) && (
-                                                <div className="text-sm pl-2">
-                                                    <span className="font-bold text-slate-700 mr-1">End-Feel:</span>
-                                                    {Object.entries(data.endFeel)
-                                                        .filter(([_, val]: [string, any]) => val.isAbnormal || val.painful)
-                                                        .map(([motion, val]: [string, any]) => `${motion} (${val.type}${val.painful ? ' Pain' : ''})`)
-                                                        .join(' | ')}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                    {Object.entries(r.therapist.jointMobility).map(([region, data]: [string, any]) => {
+                                        // Separate Standard Glides from Coupled Patterns
+                                        const glides = Object.entries(data.jointPlay || {}).filter(([key]) => !key.includes('PPIVM'));
+                                        const patterns = Object.entries(data.jointPlay || {}).filter(([key]) => key.includes('PPIVM'));
+                                        const hasEndFeel = data.endFeel && Object.values(data.endFeel).some((v: any) => v.isAbnormal || v.painful);
+
+                                        return (
+                                            <div key={region} className="break-inside-avoid">
+                                                <div className="text-sm font-bold text-slate-900 mb-2 border-b border-slate-100 pb-1">{region}</div>
+                                                
+                                                {/* Section A: Coupled Motions / Functional Patterns (PPIVM) */}
+                                                {patterns.length > 0 && (
+                                                    <div className="mb-2">
+                                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Coupled Motions / Patterns</span>
+                                                        <div className="pl-2 grid grid-cols-1 gap-1">
+                                                            {patterns.map(([key, val]: [string, any]) => {
+                                                                // Clean up key name "L4 Quadrant Ext (L) PPIVM" -> "Quadrant Ext (L)"
+                                                                const displayKey = key.replace(region, '').replace('PPIVM', '').trim();
+                                                                return (
+                                                                    <div key={key} className="text-sm flex justify-between border-b border-dotted border-slate-50 last:border-0">
+                                                                        <span className="text-slate-700">{displayKey}</span>
+                                                                        <span className="font-mono font-bold">
+                                                                            {val.grade}{val.painful ? ' (Pain)' : ''}
+                                                                        </span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Section B: Accessory Movements (PAIVM / Glides) */}
+                                                {glides.length > 0 && (
+                                                    <div className="mb-2">
+                                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Accessory Glides</span>
+                                                        <div className="pl-2">
+                                                            <div className="text-sm text-slate-800">
+                                                                {glides.map(([joint, val]: [string, any]) => 
+                                                                    `${joint.replace(region, '').trim()} (${val.grade}${val.painful ? ' Pain' : ''})`
+                                                                ).join(' | ')}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Section C: End Feel */}
+                                                {hasEndFeel && (
+                                                    <div className="mt-2">
+                                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">End-Feel Findings</span>
+                                                        <div className="pl-2 text-sm">
+                                                            {Object.entries(data.endFeel)
+                                                                .filter(([_, val]: [string, any]) => val.isAbnormal || val.painful)
+                                                                .map(([motion, val]: [string, any]) => {
+                                                                    const displayMotion = motion.replace(region, '').trim();
+                                                                    return `${displayMotion}: ${val.type}${val.painful ? ' (Pain)' : ''}`;
+                                                                })
+                                                                .join(' | ')}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
