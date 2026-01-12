@@ -541,6 +541,33 @@ export const SPECIAL_TEST_DB: Record<string, { name: string; purpose: string; st
     { name: "Vertebral Artery Test", purpose: "VBI Insufficiency", stats: "Use with caution" },
     { name: "ULTT (Elvey)", purpose: "Upper Limb Neural Tension", stats: "High Sens" }
   ],
+  'Thoracic (胸椎)': [
+    { name: "Adson's Test", purpose: "Thoracic Outlet Syndrome (TOS)", stats: "Spec: 0.76" },
+    { name: "Roos Test (EAST)", purpose: "Thoracic Outlet Syndrome (TOS)", stats: "High Sens" }
+  ],
+  'Lumbar (腰椎)': [
+    { name: "Straight Leg Raise", purpose: "Lumbar Radiculopathy", stats: "High Sens (0.91)" },
+    { name: "Crossed SLR", purpose: "Lumbar Herniation", stats: "High Spec (0.88)" },
+    { name: "Prone Instability", purpose: "Lumbar Instability", stats: "Spec: 0.82" },
+    { name: "Quadrant Test", purpose: "Facet/Foraminal", stats: "High Sens" },
+    { name: "Stork Test", purpose: "Spondylolisthesis/Pars", stats: "" },
+    { name: "Hoover Test", purpose: "Malingering/Effort", stats: "" },
+    { name: "Milgram Test", purpose: "Intrathecal Pathology", stats: "" }
+  ],
+  'Spine (脊椎)': [
+    { name: "Adam's Forward Bend Test", purpose: "Scoliosis / Rib Hump", stats: "Sens: 0.84" },
+    { name: "Slump Test", purpose: "Neural Tension / Dural", stats: "Sens: 0.84" }
+  ],
+  'SIJ (薦髂關節)': [
+    { name: "Thigh Thrust", purpose: "SIJ Pain Provocation", stats: "Sens: 0.88" },
+    { name: "Distraction", purpose: "SIJ Pain Provocation", stats: "Spec: 0.81" },
+    { name: "Compression", purpose: "SIJ Pain Provocation", stats: "Spec: 0.69" },
+    { name: "Sacral Thrust", purpose: "SIJ Pain Provocation", stats: "" },
+    { name: "Gaenslen's Test", purpose: "SIJ Pain Provocation", stats: "" },
+    { name: "FABER (Patrick's)", purpose: "SIJ / Hip", stats: "Sens: 0.57" },
+    { name: "Gillet Test", purpose: "SIJ Mobility", stats: "Low Reliability" },
+    { name: "Long Sitting Test", purpose: "SIJ Dysfunction (Rotation)", stats: "" }
+  ],
   'Shoulder (肩膀)': [
     { name: "Neer's Test", purpose: "Subacromial Impingement", stats: "High Sens (0.79)" },
     { name: "Hawkins-Kennedy", purpose: "Subacromial Impingement", stats: "High Sens (0.79)" },
@@ -579,26 +606,6 @@ export const SPECIAL_TEST_DB: Record<string, { name: string; purpose: string; st
     { name: "Watson's Shift", purpose: "Scaphoid Instability", stats: "" },
     { name: "Allen's Test", purpose: "Radial/Ulnar Artery Patency", stats: "" },
     { name: "Thumb Grind Test", purpose: "CMC OA", stats: "High Spec" }
-  ],
-  'Lumbar (腰椎)': [
-    { name: "Straight Leg Raise", purpose: "Lumbar Radiculopathy", stats: "High Sens (0.91)" },
-    { name: "Crossed SLR", purpose: "Lumbar Herniation", stats: "High Spec (0.88)" },
-    { name: "Slump Test", purpose: "Neural Tension / Dural", stats: "Sens: 0.84" },
-    { name: "Prone Instability", purpose: "Lumbar Instability", stats: "Spec: 0.82" },
-    { name: "Quadrant Test", purpose: "Facet/Foraminal", stats: "High Sens" },
-    { name: "Stork Test", purpose: "Spondylolisthesis/Pars", stats: "" },
-    { name: "Hoover Test", purpose: "Malingering/Effort", stats: "" },
-    { name: "Milgram Test", purpose: "Intrathecal Pathology", stats: "" }
-  ],
-  'SIJ (薦髂關節)': [
-    { name: "Thigh Thrust", purpose: "SIJ Pain Provocation", stats: "Sens: 0.88" },
-    { name: "Distraction", purpose: "SIJ Pain Provocation", stats: "Spec: 0.81" },
-    { name: "Compression", purpose: "SIJ Pain Provocation", stats: "Spec: 0.69" },
-    { name: "Sacral Thrust", purpose: "SIJ Pain Provocation", stats: "" },
-    { name: "Gaenslen's Test", purpose: "SIJ Pain Provocation", stats: "" },
-    { name: "FABER (Patrick's)", purpose: "SIJ / Hip", stats: "Sens: 0.57" },
-    { name: "Gillet Test", purpose: "SIJ Mobility", stats: "Low Reliability" },
-    { name: "Long Sitting Test", purpose: "SIJ Dysfunction (Rotation)", stats: "" }
   ],
   'Hip (髖關節)': [
     { name: "FADIR Test", purpose: "FAI / Labral Tear", stats: "High Sens (0.99)" },
