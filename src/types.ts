@@ -64,6 +64,23 @@ export interface JointMobilityData {
   [region: string]: JointMobilityRegionData;
 }
 
+// --- Muscle Length Types (New) ---
+export interface MuscleLengthEntry {
+    result: 'Normal' | 'Tight' | 'Hyper' | '';
+    value?: string; // e.g. "10 deg", "-5 cm"
+    painful?: boolean; // Added Pain flag
+    note?: string;
+}
+
+export interface MuscleLengthTest {
+    l: MuscleLengthEntry;
+    r: MuscleLengthEntry;
+}
+
+export interface MuscleLengthData {
+    [testName: string]: MuscleLengthTest;
+}
+
 // --- Neural Tension Types ---
 export interface NeuralTensionSide {
   grade: '0' | '1' | '2' | '3' | ''; // Tsai's 2008 Grading
@@ -232,7 +249,7 @@ export interface TherapistData {
   neuralTension?: NeuralTensionData;
   endFeel?: string; // Legacy
   jointMobility?: JointMobilityData | string; // Updated to support object structure
-  muscleLength?: string;
+  muscleLength?: MuscleLengthData | string; // Updated to support structured data
   specialTests: Record<string, SpecialTestJointData> | string; 
   testsJoint: string; // Legacy fallback
   rom: Record<string, RomJointData>; 
@@ -349,10 +366,10 @@ export const MMT_OPTIONS: Record<string, string[]> = {
 };
 
 export const STTT_OPTIONS: Record<string, string[]> = {
-  'Cervical (頸椎)': ['Flexion', 'Extension', 'Side Bend L', 'Side Bend R', 'Rotation L', 'Rotation R'],
   'Shoulder (肩膀)': ['Flexion', 'Extension', 'Abduction', 'Adduction', 'ER', 'IR', 'Elbow Flexion (Biceps)', 'Elbow Extension (Triceps)'],
   'Elbow (手肘)': ['Flexion', 'Extension', 'Supination', 'Pronation', 'Wrist Extension', 'Wrist Flexion'],
-  'Wrist (手腕)': ['Flexion', 'Extension', 'Radial Dev', 'Ulnar Dev', 'Finger Ext', 'Finger Flex'],
+  'Wrist (手腕)': ['Flexion', 'Extension', 'Radial Dev', 'Ulnar Dev'],
+  'Fingers (手指)': ['MCP Flexion', 'MCP Extension', 'PIP Flexion', 'PIP Extension', 'DIP Flexion', 'DIP Extension', 'Finger Abduction', 'Finger Adduction', 'Thumb CMC Ext/Abd', 'Thumb MCP Flex/Ext', 'Thumb IP Flex/Ext'],
   'Hip (髖關節)': ['Flexion', 'Extension', 'Abduction', 'Adduction', 'ER', 'IR'],
   'Knee (膝蓋)': ['Flexion', 'Extension'],
   'Ankle (腳踝)': ['Dorsiflexion', 'Plantarflexion', 'Inversion', 'Eversion'],
@@ -478,6 +495,13 @@ export const CAPSULAR_PATTERNS: Record<string, CapsularPatternRule> = {
     }
 };
 
+// --- MUSCLE LENGTH DATABASE ---
+export const MUSCLE_LENGTH_DB = [
+    { category: 'Upper Extremity', tests: ['Pec Major (Clavicular)', 'Pec Major (Sternal)', 'Pec Minor Length', 'Latissimus Dorsi Length', 'Biceps Length', 'Triceps Length', 'Wrist Flexors Length', 'Wrist Extensors Length'] },
+    { category: 'Lower Extremity', tests: ['Thomas Test (Iliopsoas)', 'Mod. Thomas (Rectus Fem.)', 'Ober\'s Test (TFL/ITB)', 'Straight Leg Raise (Hamstrings)', '90-90 SLR (Hamstrings)', 'Ely\'s Test (Rectus Fem.)', 'Gastrocnemius Length', 'Soleus Length', 'Piriformis Test', 'Noble Compression (ITB)'] },
+    { category: 'Spine & Trunk', tests: ['Occiput-Wall Distance', 'Finger-Floor (Forward Bend)', 'Schober\'s Test', 'Quadratus Lumborum'] }
+];
+
 export const NEURAL_TESTS_LIST = [
     // Upper Limb
     { id: 'ULNT 1', label: 'ULNT 1 (Median)', region: 'Upper', category: 'ULTT Series' },
@@ -510,84 +534,107 @@ export const NEURAL_GRADES = [
 
 export const SPECIAL_TEST_DB: Record<string, { name: string; purpose: string; stats?: string }[]> = {
   'Cervical (頸椎)': [
-    { name: "Spurling's Test", purpose: "Cervical Radiculopathy (Foraminal Compression)", stats: "High Spec (0.92), Low Sens" },
+    { name: "Spurling's Test", purpose: "Cervical Radiculopathy (Foraminal)", stats: "High Spec (0.92)" },
     { name: "Distraction Test", purpose: "Relief of Radicular Symptoms", stats: "High Spec (0.90)" },
     { name: "Sharp-Purser Test", purpose: "Atlantoaxial Instability", stats: "Spec: 0.96" },
-    { name: "Alar Ligament Test", purpose: "Alar Ligament Integrity", stats: "" }
+    { name: "Alar Ligament Test", purpose: "Alar Ligament Integrity", stats: "" },
+    { name: "Vertebral Artery Test", purpose: "VBI Insufficiency", stats: "Use with caution" },
+    { name: "ULTT (Elvey)", purpose: "Upper Limb Neural Tension", stats: "High Sens" }
   ],
   'Shoulder (肩膀)': [
     { name: "Neer's Test", purpose: "Subacromial Impingement", stats: "High Sens (0.79)" },
     { name: "Hawkins-Kennedy", purpose: "Subacromial Impingement", stats: "High Sens (0.79)" },
-    { name: "Empty Can (Jobe)", purpose: "Supraspinatus Tear/Pathology", stats: "Sens: 0.44, Spec: 0.90" },
+    { name: "Empty Can (Jobe)", purpose: "Supraspinatus Pathology", stats: "Spec: 0.90" },
     { name: "Drop Arm Test", purpose: "Full Thickness RC Tear", stats: "High Spec (0.98)" },
-    { name: "Speed's Test", purpose: "Biceps Pathology / SLAP", stats: "Mod Sens/Spec" },
-    { name: "Yergason's Test", purpose: "Biceps Tendon / Transverse Lig.", stats: "High Spec (0.86)" },
-    { name: "O'Brien's Test", purpose: "SLAP Lesion (Active Compression)", stats: "High Spec if pain deep" },
+    { name: "Speed's Test", purpose: "Biceps/SLAP", stats: "Mod Sens/Spec" },
+    { name: "Yergason's Test", purpose: "Transverse Lig/Biceps", stats: "High Spec (0.86)" },
+    { name: "O'Brien's Test", purpose: "SLAP Lesion", stats: "High Spec if deep pain" },
     { name: "Apprehension Test", purpose: "Anterior Instability", stats: "High Spec (0.99)" },
     { name: "Relocation Test", purpose: "Confirms Anterior Instability", stats: "" },
     { name: "Sulcus Sign", purpose: "Inferior Instability", stats: "" },
     { name: "Hornblower's Sign", purpose: "Teres Minor Tear", stats: "Spec: 0.93" },
-    { name: "Bear Hug Test", purpose: "Subscapularis Tear", stats: "Sens: 0.60, Spec: 0.91" }
+    { name: "Bear Hug Test", purpose: "Subscapularis Tear", stats: "Spec: 0.91" },
+    { name: "Lift-Off Test", purpose: "Subscapularis Tear", stats: "High Spec" },
+    { name: "Belly Press Test", purpose: "Subscapularis Tear", stats: "High Spec" },
+    { name: "Crank Test", purpose: "SLAP Lesion", stats: "" },
+    { name: "Kim Test", purpose: "Posterior Labral Lesion", stats: "High Spec" },
+    { name: "Jerk Test", purpose: "Posterior Instability", stats: "High Spec" }
   ],
   'Elbow (手肘)': [
     { name: "Cozen's Test", purpose: "Lateral Epicondylitis", stats: "High Sens" },
     { name: "Mill's Test", purpose: "Lateral Epicondylitis", stats: "" },
-    { name: "Maudsley's Test", purpose: "Lateral Epicondylitis (3rd digit ext)", stats: "" },
+    { name: "Maudsley's Test", purpose: "Lateral Epicondylitis (3rd digit)", stats: "" },
     { name: "Golfer's Elbow Test", purpose: "Medial Epicondylitis", stats: "" },
     { name: "Valgus Stress Test", purpose: "UCL Instability", stats: "Sens: 0.65" },
     { name: "Varus Stress Test", purpose: "RCL Instability", stats: "" },
-    { name: "Tinel's Sign (Elbow)", purpose: "Cubital Tunnel Syn. (Ulnar n.)", stats: "Sens: 0.70" }
+    { name: "Tinel's Sign (Elbow)", purpose: "Cubital Tunnel (Ulnar n.)", stats: "Sens: 0.70" },
+    { name: "Pinch Grip Test", purpose: "Ant. Interosseous Nerve", stats: "" }
   ],
   'Wrist (手腕/手)': [
     { name: "Phalen's Test", purpose: "Carpal Tunnel Syndrome", stats: "Sens: 0.68, Spec: 0.73" },
     { name: "Reverse Phalen's", purpose: "Carpal Tunnel Syndrome", stats: "" },
-    { name: "Tinel's Sign (Wrist)", purpose: "Median Nerve Compression", stats: "Sens: 0.50, Spec: 0.77" },
-    { name: "Finkelstein's Test", purpose: "De Quervain's Tenosynovitis", stats: "High Sens, Low Spec" },
+    { name: "Tinel's Sign (Wrist)", purpose: "Median Nerve Compression", stats: "Sens: 0.50" },
+    { name: "Finkelstein's Test", purpose: "De Quervain's Tenosynovitis", stats: "High Sens" },
     { name: "Froment's Sign", purpose: "Ulnar Nerve Palsy", stats: "" },
-    { name: "Watson's Shift", purpose: "Scaphoid Instability", stats: "" }
+    { name: "Watson's Shift", purpose: "Scaphoid Instability", stats: "" },
+    { name: "Allen's Test", purpose: "Radial/Ulnar Artery Patency", stats: "" },
+    { name: "Thumb Grind Test", purpose: "CMC OA", stats: "High Spec" }
   ],
   'Lumbar (腰椎)': [
-    { name: "Straight Leg Raise (SLR)", purpose: "Lumbar Radiculopathy (Herniation)", stats: "High Sens (0.91)" },
+    { name: "Straight Leg Raise", purpose: "Lumbar Radiculopathy", stats: "High Sens (0.91)" },
     { name: "Crossed SLR", purpose: "Lumbar Herniation", stats: "High Spec (0.88)" },
-    { name: "Slump Test", purpose: "Neural Tension / Dural", stats: "Sens: 0.84, Spec: 0.83" },
+    { name: "Slump Test", purpose: "Neural Tension / Dural", stats: "Sens: 0.84" },
     { name: "Prone Instability", purpose: "Lumbar Instability", stats: "Spec: 0.82" },
-    { name: "Quadrant Test", purpose: "Facet Joint / Foraminal Closure", stats: "High Sens" },
-    { name: "Stork Test", purpose: "Spondylolisthesis / Pars Defect", stats: "" }
+    { name: "Quadrant Test", purpose: "Facet/Foraminal", stats: "High Sens" },
+    { name: "Stork Test", purpose: "Spondylolisthesis/Pars", stats: "" },
+    { name: "Hoover Test", purpose: "Malingering/Effort", stats: "" },
+    { name: "Milgram Test", purpose: "Intrathecal Pathology", stats: "" }
   ],
   'SIJ (薦髂關節)': [
     { name: "Thigh Thrust", purpose: "SIJ Pain Provocation", stats: "Sens: 0.88" },
-    { name: "Distraction (Gapping)", purpose: "SIJ Pain Provocation", stats: "Spec: 0.81" },
+    { name: "Distraction", purpose: "SIJ Pain Provocation", stats: "Spec: 0.81" },
     { name: "Compression", purpose: "SIJ Pain Provocation", stats: "Spec: 0.69" },
     { name: "Sacral Thrust", purpose: "SIJ Pain Provocation", stats: "" },
     { name: "Gaenslen's Test", purpose: "SIJ Pain Provocation", stats: "" },
-    { name: "FABER (Patrick's)", purpose: "SIJ / Hip Pathology", stats: "Sens: 0.57, Spec: 0.71" }
+    { name: "FABER (Patrick's)", purpose: "SIJ / Hip", stats: "Sens: 0.57" },
+    { name: "Gillet Test", purpose: "SIJ Mobility", stats: "Low Reliability" },
+    { name: "Long Sitting Test", purpose: "SIJ Dysfunction (Rotation)", stats: "" }
   ],
   'Hip (髖關節)': [
-    { name: "FADIR Test", purpose: "FAI / Labral Tear", stats: "High Sens (0.99), Low Spec" },
+    { name: "FADIR Test", purpose: "FAI / Labral Tear", stats: "High Sens (0.99)" },
+    { name: "FABER Test", purpose: "Hip/SIJ Pathology", stats: "" },
     { name: "Thomas Test", purpose: "Hip Flexor Tightness", stats: "" },
-    { name: "Ober's Test", purpose: "IT Band / TFL Tightness", stats: "" },
-    { name: "Trendelenburg Sign", purpose: "Glute Medius Weakness", stats: "" },
+    { name: "Ober's Test", purpose: "IT Band Tightness", stats: "" },
+    { name: "Trendelenburg", purpose: "Glute Medius Weakness", stats: "" },
     { name: "Log Roll Test", purpose: "Intra-articular Pathology", stats: "" },
-    { name: "Scour Test", purpose: "Labral / OA", stats: "Sens: 0.62" }
+    { name: "Scour Test", purpose: "Labral / OA", stats: "Sens: 0.62" },
+    { name: "Ely's Test", purpose: "Rectus Femoris Tightness", stats: "" },
+    { name: "Craig's Test", purpose: "Femoral Anteversion", stats: "" },
+    { name: "Piriformis Test", purpose: "Piriformis Syndrome", stats: "" }
   ],
   'Knee (膝蓋)': [
-    { name: "Lachman Test", purpose: "ACL Rupture", stats: "High Sens (0.85), High Spec (0.94)" },
-    { name: "Anterior Drawer", purpose: "ACL Rupture", stats: "Sens: 0.49, Spec: 0.58" },
+    { name: "Lachman Test", purpose: "ACL Rupture", stats: "High Sens/Spec" },
+    { name: "Anterior Drawer", purpose: "ACL Rupture", stats: "Sens: 0.49" },
     { name: "Posterior Drawer", purpose: "PCL Rupture", stats: "High Sens/Spec" },
-    { name: "Valgus Stress (0/30)", purpose: "MCL Injury", stats: "High Sens (0.86)" },
-    { name: "Varus Stress (0/30)", purpose: "LCL Injury", stats: "" },
+    { name: "Valgus Stress", purpose: "MCL Injury", stats: "High Sens" },
+    { name: "Varus Stress", purpose: "LCL Injury", stats: "" },
     { name: "McMurray Test", purpose: "Meniscal Tear", stats: "Spec: 0.77" },
-    { name: "Thessaly Test (20°)", purpose: "Meniscal Tear", stats: "Sens: 0.90, Spec: 0.96" },
-    { name: "Patellar Grind (Clarke's)", purpose: "PFPS / Chondromalacia", stats: "Low Spec" },
-    { name: "Apprehension (Patella)", purpose: "Patellar Instability", stats: "" }
+    { name: "Apley's Compression", purpose: "Meniscal Tear", stats: "Low Sens" },
+    { name: "Thessaly Test", purpose: "Meniscal Tear", stats: "High Sens/Spec" },
+    { name: "Patellar Grind", purpose: "PFPS / Chondromalacia", stats: "" },
+    { name: "Patellar Apprehension", purpose: "Patellar Instability", stats: "" },
+    { name: "Pivot Shift", purpose: "ACL Rotational Instability", stats: "High Spec" },
+    { name: "Godfrey's Test", purpose: "PCL Sag Sign", stats: "High Spec" },
+    { name: "Noble Compression", purpose: "IT Band Syndrome", stats: "" }
   ],
   'Foot/Ankle (足踝)': [
     { name: "Anterior Drawer", purpose: "ATFL Injury", stats: "Sens: 0.86" },
     { name: "Talar Tilt", purpose: "CFL Injury", stats: "Spec: 0.88" },
-    { name: "Thompson Test", purpose: "Achilles Rupture", stats: "Sens: 0.96, Spec: 0.93" },
-    { name: "Kleiger's (ER) Test", purpose: "Syndesmosis (High Ankle) / Deltoid", stats: "" },
+    { name: "Thompson Test", purpose: "Achilles Rupture", stats: "High Sens/Spec" },
+    { name: "Kleiger's (ER)", purpose: "Syndesmosis/Deltoid", stats: "" },
     { name: "Squeeze Test", purpose: "Syndesmosis Injury", stats: "High Spec" },
-    { name: "Windlass Test", purpose: "Plantar Fasciitis", stats: "Spec: 1.00" }
+    { name: "Windlass Test", purpose: "Plantar Fasciitis", stats: "Spec: 1.00" },
+    { name: "Homan's Sign", purpose: "DVT (Deep Vein Thrombosis)", stats: "Poor Reliability" }
   ]
 };
 
