@@ -156,10 +156,6 @@ export const StttTesting = ({ tData, setTData }: { tData: TherapistData; setTDat
                     ))
                 )}
             </div>
-            
-            <div className="px-3 pb-3 text-[9px] text-slate-400 italic">
-                * Cyriax Principle: Strong/Painful = Contractile (Minor); Weak/Painful = Contractile (Major); Passive Pain = Inert.
-            </div>
         </div>
     );
 };
