@@ -40,6 +40,42 @@ export const StttTesting = ({ tData, setTData }: { tData: TherapistData; setTDat
         });
     };
 
+    const togglePainDetail = (joint: string, move: string, type: string) => {
+        setTData(prev => {
+            const currentSttt = prev.sttt || {};
+            const currentJoint = currentSttt[joint] || {};
+            const currentMove = currentJoint[move] || {};
+            
+            // Handle legacy data where it might be a string
+            let currentList: string[] = [];
+            if (Array.isArray(currentMove.painDetail)) {
+                currentList = currentMove.painDetail;
+            } else if (typeof currentMove.painDetail === 'string') {
+                // Migration logic for UX
+                if (currentMove.painDetail === 'both') currentList = ['concentric', 'eccentric'];
+                else if (currentMove.painDetail) currentList = [currentMove.painDetail];
+            }
+
+            const newList = currentList.includes(type) 
+                ? currentList.filter(t => t !== type)
+                : [...currentList, type];
+
+            return {
+                ...prev,
+                sttt: {
+                    ...currentSttt,
+                    [joint]: {
+                        ...currentJoint,
+                        [move]: {
+                            ...currentMove,
+                            painDetail: newList
+                        }
+                    }
+                }
+            };
+        });
+    };
+
     const removeStttJoint = (joint: string) => {
         const newSttt = { ...(tData.sttt || {}) };
         delete newSttt[joint];
@@ -113,8 +149,10 @@ export const StttTesting = ({ tData, setTData }: { tData: TherapistData; setTDat
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 {Object.entries(moves).map(([move, result]) => (
-                                    <div key={move} className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
-                                        <div className="text-[11px] font-bold text-slate-700 mb-2">{move}</div>
+                                    <div key={move} className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-2">
+                                        <div className="text-[11px] font-bold text-slate-700">{move}</div>
+                                        
+                                        {/* Primary Toggles */}
                                         <div className="flex flex-wrap gap-1.5">
                                             <button
                                                 type="button"
@@ -134,21 +172,54 @@ export const StttTesting = ({ tData, setTData }: { tData: TherapistData; setTDat
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => toggleStttValue(joint, move, 'resistedPain')}
-                                                className={`px-2 py-0.5 rounded text-[9px] font-bold border transition-all flex items-center gap-1
-                                                ${result.resistedPain ? 'bg-red-600 text-white border-red-700 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}
-                                            >
-                                                Resisted Pain
-                                            </button>
-                                            <button
-                                                type="button"
                                                 onClick={() => toggleStttValue(joint, move, 'resistedWeak')}
                                                 className={`px-2 py-0.5 rounded text-[9px] font-bold border transition-all flex items-center gap-1
                                                 ${result.resistedWeak ? 'bg-orange-600 text-white border-orange-700 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}
                                             >
                                                 Weakness (W)
                                             </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleStttValue(joint, move, 'resistedPain')}
+                                                className={`px-2 py-0.5 rounded text-[9px] font-bold border transition-all flex items-center gap-1
+                                                ${result.resistedPain ? 'bg-red-600 text-white border-red-700 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}
+                                            >
+                                                Resisted Pain
+                                            </button>
                                         </div>
+
+                                        {/* Detailed Contraction Pain Selector (Conditional, Multi-select) */}
+                                        {result.resistedPain && (
+                                            <div className="flex items-center gap-1 pt-2 mt-1 border-t border-dashed border-slate-100 animate-fade-in">
+                                                <span className="text-[9px] font-bold text-red-400 mr-1">Pain Type:</span>
+                                                <div className="flex bg-red-50 p-0.5 rounded-md gap-0.5">
+                                                    {[
+                                                        { id: 'isometric', label: 'Iso' },
+                                                        { id: 'concentric', label: 'Con' },
+                                                        { id: 'eccentric', label: 'Ecc' }
+                                                    ].map((opt) => {
+                                                        let isActive = false;
+                                                        if (Array.isArray(result.painDetail)) {
+                                                            isActive = result.painDetail.includes(opt.id);
+                                                        } else if (typeof result.painDetail === 'string') {
+                                                            // Legacy check
+                                                            isActive = result.painDetail === opt.id || (result.painDetail === 'both' && (opt.id === 'concentric' || opt.id === 'eccentric'));
+                                                        }
+
+                                                        return (
+                                                            <button
+                                                                key={opt.id}
+                                                                type="button"
+                                                                onClick={() => togglePainDetail(joint, move, opt.id)}
+                                                                className={`px-2 py-0.5 rounded text-[9px] font-bold transition-all ${isActive ? 'bg-red-500 text-white shadow-sm' : 'text-red-400 hover:bg-red-100'}`}
+                                                            >
+                                                                {opt.label}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
