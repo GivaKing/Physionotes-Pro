@@ -126,7 +126,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
           `}>
              {/* Logo Icon */}
              <div className="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center">
-                <img src="app_icon_trans.png" alt="Logo" className="w-[18px] h-[18px] object-contain" />
+                <img src="app_icon.png" alt="Logo" className="w-[18px] h-[18px] object-contain" />
              </div>
              <span>PhysioNotes</span>
           </div>
