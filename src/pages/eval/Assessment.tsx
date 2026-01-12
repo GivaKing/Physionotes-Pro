@@ -6,6 +6,7 @@ import { TherapistData, VisitData } from '../../types';
 import { RomTesting } from '../../components/RomTesting';
 import { MmtTesting } from '../../components/MmtTesting';
 import { StttTesting } from '../../components/StttTesting';
+import { MuscleLengthTesting } from '../../components/MuscleLengthTesting';
 import { NeuralTensionTesting } from '../../components/NeuralTensionTesting';
 import { SpecialTests } from '../../components/SpecialTests';
 import { NeuroTesting } from '../../components/NeuroTesting';
@@ -40,6 +41,9 @@ export const AssessmentSection: React.FC<AssessmentProps> = ({ tData, setTData, 
 
             {/* --- Modular STTT Section --- */}
             <StttTesting tData={tData} setTData={setTData} />
+
+            {/* --- Modular Muscle Length Testing Section (New) --- */}
+            <MuscleLengthTesting tData={tData} setTData={setTData} />
 
             {/* --- Modular Joint Mobility Section (New) --- */}
             <JointMobilityTesting tData={tData} setTData={setTData} />
