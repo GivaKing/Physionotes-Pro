@@ -19,7 +19,8 @@ const prepareTherapistPayload = (therapist: TherapistData) => {
         rom: t.rom || {},
         mmt: t.mmt || {},
         sttt: t.sttt || {},
-        jointMobility: t.jointMobility || {}, // Support new object structure
+        jointMobility: t.jointMobility || {}, 
+        muscleLength: t.muscleLength || {}, // Ensure structure exists
         // Ensure legacy fields don't break insert
         palpation: t.softTissue || '', 
         neuroTension: t.testsNerve || '',
