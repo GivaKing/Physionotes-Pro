@@ -25,6 +25,8 @@ export interface StttMoveResult {
   passivePain?: boolean;
   resistedPain?: boolean;
   resistedWeak?: boolean;
+  // New: Detailed contraction pain type (Array for multi-select)
+  painDetail?: string[];
 }
 
 export interface StttJointData {
