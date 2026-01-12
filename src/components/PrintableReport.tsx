@@ -407,7 +407,25 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                             </div>
                         )}
 
-                        {/* 5. Neuro Screening - text-xs -> text-sm */}
+                        {/* 5. Muscle Length (New) */}
+                        {r.therapist.muscleLength && typeof r.therapist.muscleLength === 'object' && Object.keys(r.therapist.muscleLength).length > 0 && (
+                            <div className="break-inside-avoid section-container">
+                                <SubHeader title="Muscle Length" />
+                                <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                                    {Object.entries(r.therapist.muscleLength).map(([test, sides]: [string, any]) => (
+                                        <div key={test} className="flex justify-between border-b border-dotted border-slate-200 py-1">
+                                            <span className="font-medium text-slate-700 truncate pr-2">{test}</span>
+                                            <div className="font-mono text-slate-900 text-xs flex gap-2">
+                                                <span>L: {sides.l.result || 'Norm'} {sides.l.value ? `(${sides.l.value})` : ''}</span>
+                                                <span>R: {sides.r.result || 'Norm'} {sides.r.value ? `(${sides.r.value})` : ''}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 6. Neuro Screening - text-xs -> text-sm */}
                         {r.therapist.neuroScreening && Object.keys(r.therapist.neuroScreening).length > 0 && (
                             <div className="break-inside-avoid section-container">
                                 <SubHeader title="Neurological Screening" />
@@ -427,7 +445,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                             </div>
                         )}
 
-                        {/* 6. Neural Tension - text-xs -> text-sm */}
+                        {/* 7. Neural Tension - text-xs -> text-sm */}
                         {r.therapist.neuralTension && Object.keys(r.therapist.neuralTension).length > 0 && (
                             <div className="break-inside-avoid section-container">
                                 <SubHeader title="Neural Tension" />
@@ -445,7 +463,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                             </div>
                         )}
 
-                        {/* 7. Special Tests - text-xs -> text-sm */}
+                        {/* 8. Special Tests - text-xs -> text-sm */}
                         {r.therapist.specialTests && typeof r.therapist.specialTests !== 'string' && Object.keys(r.therapist.specialTests).length > 0 && (
                             <div className="break-inside-avoid section-container">
                                 <SubHeader title="Special Tests" />
@@ -472,7 +490,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                             </div>
                         )}
 
-                        {/* 8. Soft Tissue - text-xs -> text-sm */}
+                        {/* 9. Soft Tissue - text-xs -> text-sm */}
                         {r.therapist.softTissue && (
                             <div className="break-inside-avoid section-container">
                                 <SubHeader title="Soft Tissue / Palpation" />
@@ -482,7 +500,7 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                             </div>
                         )}
 
-                        {/* 9. Reasoning - text-xs -> text-sm */}
+                        {/* 10. Reasoning - text-xs -> text-sm */}
                         <div className="break-inside-avoid section-container">
                             <SubHeader title="Reasoning" />
                             <div className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap mb-4">
