@@ -116,7 +116,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       const formattedCases: PatientCase[] = (patients || []).map((p: any) => {
         const rawC = p.raw_client || {};
-        const normalizedClient: ClientData = { ...rawC, name: rawC.name || 'Unknown' };
+        
+        // Data Sanitization: Ensure critical fields exist
+        const normalizedClient: ClientData = { 
+            ...rawC, 
+            name: rawC.name || 'Unknown',
+            chiefComplaint: rawC.chiefComplaint || '' // Prevent undefined error
+        };
 
         const rawVisits = p.visit || [];
         const records = rawVisits.map((v: any) => {
