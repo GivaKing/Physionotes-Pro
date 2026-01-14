@@ -90,7 +90,7 @@ export const PasswordResetModal = () => {
                         <Button 
                             type="submit" 
                             disabled={loading}
-                            className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-indigo-500/30 active:scale-95 transition-all mt-4"
+                            className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white rounded-[1.5rem] font-black text-sm shadow-xl shadow-slate-900/30 active:scale-95 transition-all mt-4"
                         >
                             {loading ? '更新中...' : '確認重置密碼'}
                         </Button>
