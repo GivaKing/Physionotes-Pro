@@ -59,12 +59,21 @@ export const AssessmentSection: React.FC<AssessmentProps> = ({ tData, setTData, 
 
             {/* --- Soft Tissue / Palpation Card --- */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="bg-slate-50 p-3 border-b border-slate-200 flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-pink-500 rounded-full"></span>
-                    <h4 className="font-bold text-slate-700">軟組織與觸診 (Soft Tissue / Palpation)</h4>
+                <div className="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center">
+                    <h4 className="font-bold text-slate-700 flex items-center gap-2">
+                        <span className="w-1.5 h-4 bg-pink-500 rounded-full"></span>
+                        軟組織與觸診 (Soft Tissue / Palpation)
+                    </h4>
+                    <div className="flex items-center">
+                        <ListIconSet
+                            onNumberClick={() => toggleListFormatHelper('soft-tissue-input', 'number', tData.softTissue, (v) => setTData({ ...tData, softTissue: v }))}
+                            onBulletClick={() => toggleListFormatHelper('soft-tissue-input', 'bullet', tData.softTissue, (v) => setTData({ ...tData, softTissue: v }))}
+                        />
+                    </div>
                 </div>
                 <div className="p-4">
                     <TextArea
+                        id="soft-tissue-input"
                         value={tData.softTissue}
                         onChange={e => setTData({ ...tData, softTissue: e.target.value })}
                         className="h-32 bg-slate-50 focus:bg-white transition-colors"
