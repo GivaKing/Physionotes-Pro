@@ -40,7 +40,7 @@ const Main = () => {
         <Layout activeTab={activeTab} onTabChange={setActiveTab}>
           {activeTab === 'cases' && <PatientList onNavigate={setActiveTab} />}
           {activeTab === 'client' && <ClientIntake onNavigate={setActiveTab} />}
-          {activeTab === 'therapist' && <TherapistEval />}
+          {activeTab === 'therapist' && <TherapistEval onNavigate={setActiveTab} />}
         </Layout>
       </div>
       
