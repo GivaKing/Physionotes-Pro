@@ -261,6 +261,12 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                         <div className="text-xl font-black text-slate-900">S</div>
                     </div>
                     <div className="space-y-4 pb-6 mb-6 border-b border-slate-100 break-inside-avoid">
+                        {r.visit.subjectiveNotes && (
+                            <div className="text-sm text-slate-800 mb-4 bg-slate-50/50 p-3 rounded-lg border border-slate-100">
+                                <span className="font-bold block mb-1 text-slate-900">Current Complaint / Subjective Notes:</span>
+                                <div className="whitespace-pre-wrap leading-relaxed">{r.visit.subjectiveNotes}</div>
+                            </div>
+                        )}
                         {r.visit.vasEntries?.map((vas, vIdx) => (
                             <div key={vIdx} className="text-sm">
                                 <div className="font-bold text-slate-900 mb-1">
@@ -276,12 +282,6 @@ export const PrintableReport: React.FC<PrintableReportProps> = ({
                                 </div>
                             </div>
                         ))}
-                        {r.visit.subjectiveNotes && (
-                            <div className="text-sm text-slate-800 mt-2">
-                                <span className="font-bold block mb-1">Notes:</span>
-                                <div className="whitespace-pre-wrap pl-2 leading-relaxed">{r.visit.subjectiveNotes}</div>
-                            </div>
-                        )}
                     </div>
 
                     {/* --- O: Objective --- */}
