@@ -27,10 +27,13 @@ export const PatientList: React.FC<PatientListProps> = ({ onNavigate }) => {
     loadCases();
   }, []);
 
-  const filtered = cases.filter(c => 
-    c.client.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.client.chiefComplaint.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = cases.filter(c => {
+    const name = c.client?.name || '';
+    const complaint = c.client?.chiefComplaint || ''; // Safety guard against undefined
+    const term = search.toLowerCase();
+    
+    return name.toLowerCase().includes(term) || complaint.toLowerCase().includes(term);
+  });
 
   const handleSelect = (caseItem: PatientCase) => {
     setActiveCaseId(caseItem.id || null);
@@ -236,7 +239,7 @@ export const PatientList: React.FC<PatientListProps> = ({ onNavigate }) => {
                 {/* 黑色膠囊風格按鈕 */}
                 <button 
                     onClick={handleAdd}
-                    className="p-1 rounded-[2rem] bg-slate-900 text-white shadow-[0_10px_25px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all"
+                    className="p-1 rounded-[2rem] bg-[#0f172a] text-white shadow-[0_10px_25px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all"
                 >
                     <div className="px-6 py-2.5 rounded-[1.8rem] text-xs font-black flex items-center gap-2">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -290,8 +293,6 @@ export const PatientList: React.FC<PatientListProps> = ({ onNavigate }) => {
              </div>
           ) : (
              <div className="grid grid-cols-1 gap-4">
-                {/* 桌面版表頭 (可選) - 改為純粹的卡片流，移除表頭以符合現代卡片風格 */}
-                
                 {filtered.map(caseItem => {
                    const lastRecord = caseItem.records[caseItem.records.length - 1];
                    const age = getAge(caseItem.client.dob);
@@ -307,12 +308,12 @@ export const PatientList: React.FC<PatientListProps> = ({ onNavigate }) => {
                      >
                         {/* 左側：頭像與基本資料 */}
                         <div className="flex items-center gap-4 w-full md:w-[35%] shrink-0 border-b md:border-b-0 md:border-r border-slate-50 pb-4 md:pb-0 md:pr-6">
-                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0 shadow-md ${hasRedFlags ? 'bg-rose-500' : 'bg-slate-900'}`}>
-                                {caseItem.client.name[0]}
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0 shadow-md ${hasRedFlags ? 'bg-rose-500' : 'bg-[#0f172a]'}`}>
+                                {caseItem.client.name ? caseItem.client.name[0] : '?'}
                             </div>
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
-                                    <h3 className="text-lg font-black text-slate-800 truncate">{caseItem.client.name}</h3>
+                                    <h3 className="text-lg font-black text-slate-800 truncate">{caseItem.client.name || 'Unknown'}</h3>
                                     {hasRedFlags && <span className="text-[10px] bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full font-bold">RED FLAGS</span>}
                                 </div>
                                 <div className="text-xs font-medium text-slate-400 mt-0.5 flex items-center gap-2">
