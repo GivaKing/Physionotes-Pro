@@ -188,11 +188,11 @@ export const Auth = () => {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                         <Label>Name</Label>
-                        <Input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="真實姓名" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
+                        <Input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="Full Name" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
                     </div>
                     <div className="space-y-1.5">
                         <Label>Job</Label>
-                        <Input type="text" value={job} onChange={e => setJob(e.target.value)} placeholder="物理治療師" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
+                        <Input type="text" value={job} onChange={e => setJob(e.target.value)} placeholder="Physical Therapist" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
                     </div>
                 </div>
 
