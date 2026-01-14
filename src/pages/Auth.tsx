@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
 import { useApp } from '../store';
-import { Input, Button, Label } from '../components/Input';
+import { Input, Label } from '../components/Input';
+import { TermsModal } from '../components/TermsModal';
 
 export const Auth = () => {
   const { login, signup } = useApp();
@@ -12,11 +14,23 @@ export const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
+  
+  // New States for T&C
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Validation for T&C
+    if (!isLogin && !agreedToTerms) {
+        setError("請先詳細閱讀並同意服務條款與隱私權政策，方可註冊。");
+        setLoading(false);
+        return;
+    }
+
     try {
       if (isLogin) {
         await login(email, pass);
@@ -43,6 +57,16 @@ export const Auth = () => {
       {/* Dynamic Background Decor */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/40 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-100/40 rounded-full blur-[120px] pointer-events-none animate-pulse delay-1000"></div>
+
+      {/* Terms and Conditions Modal - Refactored */}
+      <TermsModal 
+        isOpen={showTermsModal} 
+        onClose={() => setShowTermsModal(false)}
+        onAgree={() => {
+            setAgreedToTerms(true);
+            setShowTermsModal(false);
+        }}
+      />
 
       <div className="bg-white/80 backdrop-blur-2xl w-full max-w-[420px] p-10 rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] border border-white/60 relative z-10 animate-[scale-in_0.4s_cubic-bezier(0.16,1,0.3,1)]">
         <div className="text-center mb-10">
@@ -116,15 +140,43 @@ export const Auth = () => {
           </div>
           
           {!isLogin && (
-            <div className="grid grid-cols-2 gap-4 animate-[slide-down_0.3s_ease-out]">
-              <div className="space-y-1.5">
-                <Label>姓名</Label>
-                <Input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="王大明" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>職稱</Label>
-                <Input type="text" value={job} onChange={e => setJob(e.target.value)} placeholder="物理治療師" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
-              </div>
+            <div className="animate-[slide-down_0.3s_ease-out] space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                        <Label>姓名</Label>
+                        <Input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="真實姓名" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label>職稱</Label>
+                        <Input type="text" value={job} onChange={e => setJob(e.target.value)} placeholder="物理治療師" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
+                    </div>
+                </div>
+
+                {/* Terms and Conditions Checkbox */}
+                <div className="flex items-start gap-3 px-1">
+                    <div className="relative flex items-center">
+                        <input 
+                            type="checkbox" 
+                            id="terms" 
+                            checked={agreedToTerms}
+                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                            className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-slate-300 bg-white transition-all checked:border-slate-900 checked:bg-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-1"
+                        />
+                        <svg className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 transition-opacity" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <label htmlFor="terms" className="text-xs text-slate-500 font-medium cursor-pointer select-none leading-5">
+                        我已詳細閱讀並同意 
+                        <button 
+                            type="button" 
+                            onClick={(e) => { e.preventDefault(); setShowTermsModal(true); }}
+                            className="text-indigo-600 hover:text-indigo-800 font-bold ml-1 hover:underline underline-offset-2"
+                        >
+                            服務條款與隱私權政策
+                        </button>
+                    </label>
+                </div>
             </div>
           )}
 
