@@ -7,6 +7,7 @@ import { PatientList } from './pages/PatientList';
 import { ClientIntake } from './pages/ClientIntake';
 import { TherapistEval } from './pages/TherapistEval';
 import { PrintableReport } from './components/PrintableReport';
+import { PasswordResetModal } from './components/PasswordResetModal';
 
 const Main = () => {
   const { user, loading, activeCase } = useApp();
@@ -32,6 +33,10 @@ const Main = () => {
     );
   }
 
+  // Force Password Reset Modal to appear if in recovery mode, even if not logged in conventionally yet (though usually they are implicitly logged in by the link)
+  // Or handle it post-login if user is null but recovery event fired.
+  // Actually, Supabase signs them in. So user will exist.
+
   if (!user) return <Auth />;
 
   return (
@@ -43,6 +48,9 @@ const Main = () => {
           {activeTab === 'therapist' && <TherapistEval onNavigate={setActiveTab} />}
         </Layout>
       </div>
+      
+      {/* Global Modals */}
+      <PasswordResetModal />
       
       {/* Hidden Print Layer - Used by window.print() */}
       {activeCase && (
