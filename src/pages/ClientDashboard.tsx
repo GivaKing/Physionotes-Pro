@@ -5,7 +5,7 @@ import { VasChart } from '../components/VasChart';
 import { RomOverviewChart } from '../components/RomOverviewChart';
 import { MmtRadarChart } from '../components/MmtRadarChart';
 import { Button } from '../components/Input';
-import { toPng, toCanvas } from 'html-to-image';
+import { toCanvas } from 'html-to-image';
 import { ExportActionHub } from '../components/ExportActionHub';
 import { PrintableReport } from '../components/PrintableReport';
 import { PatientCase } from '../types';
@@ -23,7 +23,9 @@ const DashboardContent = memo(({ data, isForExport = false }: { data: PatientCas
   const hasRedFlags = (form.redFlags && form.redFlags.length > 0) || form.nightPain || form.weightLoss;
 
   const formatToList = (text?: string) => {
-    if (!text) return <span className="italic text-slate-300">本次無紀錄</span>;
+    // Added safety check: ensure text is string before splitting
+    if (!text || typeof text !== 'string') return <span className="italic text-slate-300">本次無紀錄</span>;
+    
     const lines = text.split('\n').filter(l => l.trim().length > 0);
     if (lines.length <= 1) return text;
     return (
@@ -179,18 +181,25 @@ export const ClientDashboard = () => {
 
   if (!activeCase) return null;
 
-  // --- Shared Filter Function to prevent "trim" error ---
-  // This excludes problematic nodes like scripts and stylesheets which often cause
-  // html-to-image to crash with "t is undefined" when cacheBust is involved or CORS fails.
+  // --- Strict Node Filter to prevent "trim" error ---
+  // Fix: Improved robustness to prevent "t is undefined" errors in html-to-image
   const filterNode = (node: HTMLElement) => {
+    // 1. Ensure it's an element (skip text nodes)
+    if (node.nodeType !== 1) return true; 
+
     const tagName = (node.tagName || '').toUpperCase();
-    return (
-        tagName !== 'SCRIPT' &&
-        tagName !== 'STYLE' &&
-        tagName !== 'LINK' &&
-        tagName !== 'IFRAME' &&
-        !node.classList?.contains('no-print')
-    );
+    
+    // 2. Exclude risky tags that cause CORS or parsing issues
+    if (['SCRIPT', 'STYLE', 'LINK', 'IFRAME', 'NOSCRIPT', 'OBJECT', 'EMBED', 'VIDEO', 'AUDIO'].includes(tagName)) {
+        return false;
+    }
+
+    // 3. Exclude hidden elements
+    if (node.classList && node.classList.contains('no-print')) {
+        return false;
+    }
+
+    return true;
   };
 
   // --- 1. Smart Slicing Algorithm (For High-Res PDF & Image) ---
@@ -209,9 +218,8 @@ export const ClientDashboard = () => {
         const imageData = ctx.getImageData(0, scanY, imgWidth, height);
         const data = imageData.data;
 
-        // Map out which rows are fully white
         const whiteRows: boolean[] = new Array(height).fill(true);
-        const step = 10; // Optimization: Scan every 10th pixel
+        const step = 10; 
         
         for (let y = 0; y < height; y++) {
             let isWhite = true;
@@ -225,7 +233,6 @@ export const ClientDashboard = () => {
             whiteRows[y] = isWhite;
         }
 
-        // Find contiguous blocks of white rows (Gaps)
         const gaps: { start: number, end: number, size: number }[] = [];
         let currentGapStart = -1;
 
@@ -263,20 +270,21 @@ export const ClientDashboard = () => {
     }
   };
 
-  // --- 2. Export Image Logic (Uses html-to-image + Slicing) ---
+  // --- 2. Export Image Logic ---
   const handleExportReportImage = async () => {
     if (!reportPreviewRef.current) return;
     setIsExporting(true);
     
     try {
-        await new Promise(resolve => setTimeout(resolve, 800)); // Increased wait for rendering
+        await new Promise(resolve => setTimeout(resolve, 800)); 
 
-        // Generate Ultra-High-Res Source Canvas (3x for good image quality)
         const sourceCanvas = await toCanvas(reportPreviewRef.current, {
-            cacheBust: false, // Fix: Disabled cacheBust to prevent CORS font errors
-            filter: filterNode, // Fix: Exclude script/link tags
+            cacheBust: false, 
+            filter: filterNode, 
             backgroundColor: '#ffffff',
             pixelRatio: 4, 
+            skipAutoScale: true, // Fix scaling math issues
+            fontEmbedCSS: '', // CRITICAL FIX: Disable font embedding to prevent "trim" error
             style: {
                 fontVariant: 'normal',
                 textRendering: 'geometricPrecision',
@@ -288,12 +296,10 @@ export const ClientDashboard = () => {
         const imgWidth = sourceCanvas.width;
         const imgHeight = sourceCanvas.height;
         
-        // Constants for A4 Aspect Ratio
         const pdfWidthMm = 210;
         const pdfHeightMm = 297;
         const marginMm = 15;
 
-        // Calculate heights in pixels based on width
         const pageHeightPx = Math.floor(imgWidth * (pdfHeightMm / pdfWidthMm));
         const marginPx = Math.floor(pageHeightPx * (marginMm / pdfHeightMm));
 
@@ -309,14 +315,12 @@ export const ClientDashboard = () => {
             const remainingSource = imgHeight - currentSourceY;
             let sliceHeight = Math.min(maxContentHeight, remainingSource);
 
-            // Smart Slicing
             if (sliceHeight < remainingSource) {
                 const scanRange = Math.min(Math.floor(maxContentHeight * 0.3), 2000); 
                 const smartCutY = findBestCutY(sourceCtx, imgWidth, currentSourceY + sliceHeight, scanRange);
                 sliceHeight = Math.max(1, smartCutY - currentSourceY);
             }
 
-            // Create canvas for this page
             const pageCanvas = document.createElement('canvas');
             pageCanvas.width = imgWidth;
             pageCanvas.height = pageHeightPx;
@@ -326,16 +330,14 @@ export const ClientDashboard = () => {
                 pageCtx.fillStyle = '#ffffff';
                 pageCtx.fillRect(0, 0, imgWidth, pageHeightPx);
 
-                // Draw Slice
                 pageCtx.drawImage(
                     sourceCanvas,
-                    0, currentSourceY, imgWidth, sliceHeight, // Source
-                    0, topMarginPx, imgWidth, sliceHeight     // Dest
+                    0, currentSourceY, imgWidth, sliceHeight, 
+                    0, topMarginPx, imgWidth, sliceHeight     
                 );
 
                 const imgDataUrl = pageCanvas.toDataURL('image/png', 1.0);
 
-                // Download individual image
                 const link = document.createElement('a');
                 const dateStr = new Date().toISOString().split('T')[0];
                 const safeName = activeCase.client.name.replace(/\s+/g, '_');
@@ -345,7 +347,6 @@ export const ClientDashboard = () => {
                 link.click();
                 document.body.removeChild(link);
                 
-                // Throttle slightly
                 await new Promise(r => setTimeout(r, 200));
             }
 
@@ -361,21 +362,21 @@ export const ClientDashboard = () => {
     }
   };
 
-  // --- 3. High Quality PDF Generation (Non-Native, JS Based) ---
+  // --- 3. High Quality PDF Generation ---
   const handleHighQualityPdf = async () => {
     if (!reportPreviewRef.current) return;
     setIsExporting(true);
     
     try {
-        await new Promise(resolve => setTimeout(resolve, 800)); // Wait for fonts/icons
+        await new Promise(resolve => setTimeout(resolve, 800)); 
 
-        // 1. Generate Ultra-High-Res Source Canvas
-        // pixelRatio 4 = 400 DPI equivalent (approx). Very high quality.
         const sourceCanvas = await toCanvas(reportPreviewRef.current, {
-            cacheBust: false, // Fix: Disabled cacheBust to prevent CORS font errors
-            filter: filterNode, // Fix: Exclude script/link tags
+            cacheBust: false, 
+            filter: filterNode, 
             backgroundColor: '#ffffff',
             pixelRatio: 4, 
+            skipAutoScale: true,
+            fontEmbedCSS: '', // CRITICAL FIX
             style: {
                 fontVariant: 'normal',
                 textRendering: 'geometricPrecision',
@@ -388,20 +389,17 @@ export const ClientDashboard = () => {
         const imgWidth = sourceCanvas.width;
         const imgHeight = sourceCanvas.height;
         
-        // 2. Initialize PDF (A4)
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidthMm = 210;
         const pdfHeightMm = 297;
-        const marginMm = 15; // 1.5cm margin
+        const marginMm = 15; 
 
-        // Convert page geometry to pixels relative to our source canvas
         const pageHeightPx = Math.floor(imgWidth * (pdfHeightMm / pdfWidthMm));
         const marginPx = Math.floor(pageHeightPx * (marginMm / pdfHeightMm));
 
         let currentSourceY = 0;
         let pageIndex = 0;
 
-        // 3. Slicing Loop
         while (currentSourceY < imgHeight) {
             if (pageIndex > 0) pdf.addPage();
 
@@ -413,33 +411,27 @@ export const ClientDashboard = () => {
             const remainingSource = imgHeight - currentSourceY;
             let sliceHeight = Math.min(maxContentHeight, remainingSource);
 
-            // Smart Slicing Logic
             if (sliceHeight < remainingSource) {
                 const scanRange = Math.min(Math.floor(maxContentHeight * 0.3), 2000); 
                 const smartCutY = findBestCutY(sourceCtx, imgWidth, currentSourceY + sliceHeight, scanRange);
                 sliceHeight = Math.max(1, smartCutY - currentSourceY);
             }
 
-            // Create canvas for this specific PDF page
             const pageCanvas = document.createElement('canvas');
             pageCanvas.width = imgWidth;
             pageCanvas.height = pageHeightPx;
             const pageCtx = pageCanvas.getContext('2d');
 
             if (pageCtx) {
-                // White background
                 pageCtx.fillStyle = '#ffffff';
                 pageCtx.fillRect(0, 0, imgWidth, pageHeightPx);
 
-                // Draw content slice onto the page canvas with margins
                 pageCtx.drawImage(
                     sourceCanvas,
-                    0, currentSourceY, imgWidth, sliceHeight, // Source Rect
-                    0, topMarginPx, imgWidth, sliceHeight     // Dest Rect
+                    0, currentSourceY, imgWidth, sliceHeight, 
+                    0, topMarginPx, imgWidth, sliceHeight     
                 );
 
-                // Add to PDF using PNG (LOSSLESS) for maximum quality
-                // JPEG was causing artifacts. PNG is pixel perfect.
                 const imgDataUrl = pageCanvas.toDataURL('image/png'); 
                 pdf.addImage(imgDataUrl, 'PNG', 0, 0, pdfWidthMm, pdfHeightMm);
             }
@@ -448,7 +440,6 @@ export const ClientDashboard = () => {
             pageIndex++;
         }
 
-        // 4. Save
         const dateStr = new Date().toISOString().split('T')[0];
         const safeName = activeCase.client.name.replace(/\s+/g, '_');
         pdf.save(`FullReport_${safeName}_${dateStr}.pdf`);
@@ -457,7 +448,6 @@ export const ClientDashboard = () => {
         console.error("PDF Gen Failed:", err);
         alert('PDF 生成失敗，請稍後重試。');
     } finally {
-        // Do NOT close the modal automatically, just stop spinning
         setIsExporting(false);
     }
   };
@@ -469,14 +459,14 @@ export const ClientDashboard = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Replaced toPng with toCanvas + toDataURL to resolve "trim" error
-      // Added filters to exclude scripts/links which confuse html-to-image
       const canvas = await toCanvas(dashboardPreviewRef.current, {
-        cacheBust: false, // Fix: Ensure disabled for Dashboard too
-        filter: filterNode, // Fix: Ensure filter is applied
+        cacheBust: false, 
+        filter: filterNode, 
         backgroundColor: '#ffffff',
         width: 1200, 
         pixelRatio: 4, 
+        skipAutoScale: true,
+        fontEmbedCSS: '', // CRITICAL FIX
         style: {
             fontVariant: 'normal',
             textRendering: 'geometricPrecision',
@@ -501,7 +491,6 @@ export const ClientDashboard = () => {
 
   // --- 5. Native Browser Print ---
   const handleNativePrint = () => {
-      // Just call window print. The modal stays open.
       window.print();
   };
 
@@ -536,7 +525,6 @@ export const ClientDashboard = () => {
                 <div className="flex gap-3 w-full sm:w-auto">
                     <Button variant="ghost" className="flex-1 sm:flex-initial text-white hover:bg-white/10 px-6 font-bold" onClick={() => setIsPreviewOpen(false)} disabled={isExporting}>取消</Button>
                     
-                    {/* Updated Export Button: Text changed to "下載圖片" */}
                     <button 
                         onClick={handleExportPng}
                         disabled={isExporting}
@@ -583,7 +571,6 @@ export const ClientDashboard = () => {
                 <div className="flex gap-3 w-full sm:w-auto">
                     <Button variant="ghost" className="flex-1 sm:flex-initial text-white hover:bg-white/10 px-4 font-bold" onClick={() => setShowReportPreview(false)} disabled={isExporting}>關閉</Button>
                     
-                    {/* Image Download Button */}
                     <button 
                         onClick={handleExportReportImage}
                         disabled={isExporting}
@@ -594,7 +581,6 @@ export const ClientDashboard = () => {
                         <span className="hidden sm:inline">下載圖檔</span>
                     </button>
 
-                    {/* PDF Download Button (High Res) */}
                     <button 
                         onClick={handleHighQualityPdf}
                         disabled={isExporting}
@@ -613,7 +599,6 @@ export const ClientDashboard = () => {
                         )}
                     </button>
 
-                    {/* Native Print Button */}
                     <button 
                         onClick={handleNativePrint}
                         disabled={isExporting}
@@ -621,7 +606,7 @@ export const ClientDashboard = () => {
                         title="瀏覽器原生列印 (另存PDF)"
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"></polyline><path d="M6 18h12"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path></svg>
-                        列印
+                        列印報告
                     </button>
                 </div>
             </div>
