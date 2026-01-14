@@ -143,12 +143,13 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
 
             {/* Current Complaint / Subjective Notes Card */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center">
+                {/* Updated Header: Flex-col on mobile for better spacing, right-aligned buttons */}
+                <div className="bg-slate-50 p-3 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
                     <h4 className="font-bold text-slate-700 flex items-center gap-2">
                         <span className="w-1.5 h-4 bg-slate-800 rounded-full"></span>
                         本次主訴 (Current Complaint)
                     </h4>
-                    <div className="flex items-center">
+                    <div className="flex items-center self-end sm:self-auto">
                         <ListIconSet
                             onNumberClick={() => toggleListFormatHelper('subjective-notes-input', 'number', visit.subjectiveNotes || '', (v) => setVisit({ ...visit, subjectiveNotes: v }))}
                             onBulletClick={() => toggleListFormatHelper('subjective-notes-input', 'bullet', visit.subjectiveNotes || '', (v) => setVisit({ ...visit, subjectiveNotes: v }))}
