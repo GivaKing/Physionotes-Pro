@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
 import { Button, Input, Label, TextArea, ChipGroup, Portal } from '../../components/Input';
+import { ListIconSet, toggleListFormatHelper } from '../../components/EvalShared';
 import { VisitData, BODY_PARTS_GROUPS, VasRecord } from '../../types';
 
 interface SubjectiveProps {
@@ -45,6 +47,46 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
         setVisit(prev => ({ ...prev, vasEntries: prev.vasEntries.filter((_, i) => i !== index) }));
         setExpandedVasIndex(null);
     };
+
+    // --- Professional Clinical Data Sets ---
+    
+    // Based on Maitland & McKenzie assessment protocols (Cleaned: English Only)
+    const AGGRAVATING_OPTIONS = [
+        'Sitting', 'Standing', 'Walking', 
+        'Bending/Flexion', 'Extension', 'Rotation',
+        'Sit-to-Stand', 'Stairs', 'Squatting',
+        'Lifting', 'Overhead Reach', 'Sustained Posture',
+        'Driving', 'Computer Work', 
+        'Pressure/Touch', 'Cough/Sneeze', 
+        'Deep Breathing', 'Cold/Damp', 
+        'Stress/Fatigue', 'After Activity'
+    ];
+
+    const EASING_OPTIONS = [
+        'Rest', 'Lying Supine', 'Lying Prone', 'Side Lying',
+        'Sitting', 'Standing', 'Walking', 
+        'Change Position', 'Movement', 
+        'Stretching', 'Massage/Rubbing', 
+        'Ice', 'Heat', 'Medication', 
+        'Support/Brace', 'Elevation', 'Unloading'
+    ];
+
+    const PATTERN_24H_OPTIONS = [
+        'Morning Stiffness <30m', 'Morning Stiffness >30m',
+        'Wakes at Night', 'Trouble Falling Asleep',
+        'Pain at Rest', 'Pain w/ Movement',
+        'Better w/ Movement', 'Worse End of Day',
+        'Latent Onset', 'Constant',
+        'Fluctuating', 'Predictable'
+    ];
+
+    const PAIN_QUALITY_OPTIONS = [
+        'Sharp (銳痛)', 'Dull (鈍痛)', 'Aching (痠痛)', 
+        'Throbbing (搏動/跳痛)', 'Burning (燒灼感)', 
+        'Shooting (放射/電擊)', 'Numbness (麻木)', 
+        'Tingling (刺痛/蟻走感)', 'Stiffness (緊繃感)', 
+        'Heavy (沉重感)', 'Cramping (抽筋)', 'Deep (深層鑽痛)'
+    ];
 
     return (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6 animate-fade-in">
@@ -98,6 +140,31 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                     </div>
                 </Portal>
             )}
+
+            {/* Current Complaint / Subjective Notes Card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center">
+                    <h4 className="font-bold text-slate-700 flex items-center gap-2">
+                        <span className="w-1.5 h-4 bg-slate-800 rounded-full"></span>
+                        本次主訴 (Current Complaint)
+                    </h4>
+                    <div className="flex items-center">
+                        <ListIconSet
+                            onNumberClick={() => toggleListFormatHelper('subjective-notes-input', 'number', visit.subjectiveNotes || '', (v) => setVisit({ ...visit, subjectiveNotes: v }))}
+                            onBulletClick={() => toggleListFormatHelper('subjective-notes-input', 'bullet', visit.subjectiveNotes || '', (v) => setVisit({ ...visit, subjectiveNotes: v }))}
+                        />
+                    </div>
+                </div>
+                <div className="p-4">
+                    <TextArea
+                        id="subjective-notes-input"
+                        value={visit.subjectiveNotes || ''}
+                        onChange={e => setVisit({ ...visit, subjectiveNotes: e.target.value })}
+                        className="h-32 bg-slate-50 focus:bg-white transition-colors"
+                        placeholder="請輸入本次治療主要訴求、症狀變化或特定不適..."
+                    />
+                </div>
+            </div>
 
             <div>
                 <div className="flex justify-between items-end mb-4"><Label>受傷部位清單 (Body Chart)</Label><button onClick={addVasEntry} className="text-sm bg-slate-900 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-800 transition-all shadow-sm">+ 新增疼痛部位</button></div>
@@ -196,7 +263,7 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                                             </div>
                                             <div>
                                                 <Label>Quality (疼痛性質)</Label>
-                                                <ChipGroup multi options={['Sharp (銳痛)', 'Dull (鈍痛)', 'Aching (痠痛)', 'Throbbing (搏動)', 'Burning (燒灼)', 'Shooting (放射)', 'Numbness (麻)']} value={entry.painTypes || []} onChange={v => updateVasEntry(idx, 'painTypes', v)} />
+                                                <ChipGroup multi variant="solid" options={PAIN_QUALITY_OPTIONS} value={entry.painTypes || []} onChange={v => updateVasEntry(idx, 'painTypes', v)} />
                                             </div>
                                             <div>
                                                 <Label>Depth (深度)</Label>
@@ -216,7 +283,7 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                                             </div>
                                             <div>
                                                 <Label>Behavior over day</Label>
-                                                <ChipGroup multi options={['Morning Stiffness (<30m)', 'Morning Stiffness (>60m)', 'Pain at Night', 'Pain at Rest', 'Pain w/ Movement', 'End of Day Worse']} value={entry.pattern24h ? entry.pattern24h.split(',') : []} onChange={v => updateVasEntry(idx, 'pattern24h', Array.isArray(v) ? v.join(',') : v)} />
+                                                <ChipGroup multi variant="solid" options={PATTERN_24H_OPTIONS} value={entry.pattern24h ? entry.pattern24h.split(',') : []} onChange={v => updateVasEntry(idx, 'pattern24h', Array.isArray(v) ? v.join(',') : v)} />
                                             </div>
                                             <div>
                                                 <Label>Stage / Stability</Label>
@@ -238,12 +305,12 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div>
                                                 <Label>Aggravating Factors (P - Provocation)</Label>
-                                                <div className="mb-2"><ChipGroup multi options={['Sitting', 'Standing', 'Walking', 'Bending', 'Lifting', 'Overhead']} value={entry.aggravating || []} onChange={v => updateVasEntry(idx, 'aggravating', v)} /></div>
+                                                <div className="mb-2"><ChipGroup multi variant="solid" options={AGGRAVATING_OPTIONS} value={entry.aggravating || []} onChange={v => updateVasEntry(idx, 'aggravating', v)} /></div>
                                                 <div className="flex items-center gap-2"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight whitespace-nowrap">Time to onset (P1):</span><Input value={entry.timeToOnset || ''} onChange={e => updateVasEntry(idx, 'timeToOnset', e.target.value)} placeholder="Ex: 10 mins walking..." className="bg-white h-8 text-xs font-medium" /></div>
                                             </div>
                                             <div>
                                                 <Label>Easing Factors (E - Palliation)</Label>
-                                                <div className="mb-2"><ChipGroup multi options={['Rest', 'Ice', 'Heat', 'Massage', 'Medication', 'Change Position']} value={entry.easing || []} onChange={v => updateVasEntry(idx, 'easing', v)} /></div>
+                                                <div className="mb-2"><ChipGroup multi variant="solid" options={EASING_OPTIONS} value={entry.easing || []} onChange={v => updateVasEntry(idx, 'easing', v)} /></div>
                                                 <div className="flex items-center gap-2"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight whitespace-nowrap">Time to subside (Base):</span><Input value={entry.timeToSubside || ''} onChange={e => updateVasEntry(idx, 'timeToSubside', e.target.value)} placeholder="Ex: Immediate, 1 hour..." className="bg-white h-8 text-xs font-medium" /></div>
                                             </div>
                                         </div>
