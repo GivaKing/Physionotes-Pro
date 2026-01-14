@@ -146,7 +146,7 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                 {/* Updated Header: Flex-col on mobile for better spacing, right-aligned buttons */}
                 <div className="bg-slate-50 p-3 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
                     <h4 className="font-bold text-slate-700 flex items-center gap-2">
-                        <span className="w-1.5 h-4 bg-slate-800 rounded-full"></span>
+                        <span className="w-1.5 h-4 bg-[#0f172a] rounded-full"></span>
                         本次主訴 (Current Complaint)
                     </h4>
                     <div className="flex items-center self-end sm:self-auto">
@@ -168,7 +168,7 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
             </div>
 
             <div>
-                <div className="flex justify-between items-end mb-4"><Label>受傷部位清單 (Body Chart)</Label><button onClick={addVasEntry} className="text-sm bg-slate-900 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-800 transition-all shadow-sm">+ 新增疼痛部位</button></div>
+                <div className="flex justify-between items-end mb-4"><Label>受傷部位清單 (Body Chart)</Label><button onClick={addVasEntry} className="text-sm bg-[#0f172a] text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-800 transition-all shadow-sm">+ 新增疼痛部位</button></div>
                 
                 {!visit.vasEntries?.length && (
                     <div 
@@ -186,7 +186,7 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                             {/* Header Card */}
                             <div onClick={() => setExpandedVasIndex(expandedVasIndex === idx ? null : idx)} className={`p-3 md:p-4 pr-12 md:pr-12 flex flex-col md:flex-row gap-3 cursor-pointer border-b transition-colors items-start md:items-center ${expandedVasIndex === idx ? 'bg-slate-50' : 'hover:bg-slate-50'}`}>
                                 <div className="flex flex-wrap items-center gap-2 w-full md:w-auto" onClick={e => e.stopPropagation()}>
-                                    <div className="bg-slate-800 text-white w-8 h-10 flex items-center justify-center rounded font-bold shrink-0">{idx + 1}</div>
+                                    <div className="bg-[#0f172a] text-white w-8 h-10 flex items-center justify-center rounded font-bold shrink-0">{idx + 1}</div>
                                     
                                     <div className="flex flex-col gap-1 flex-1 md:w-64">
                                         <button 
@@ -295,7 +295,7 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                                         </div>
                                     </div>
 
-                                    {/* Irritability (SIN) */}
+                                    {/* Irritability (SIN) - Optimized Layout */}
                                     <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
                                         <div className="flex items-center gap-2 border-b border-slate-200 pb-2 mb-4">
                                             <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
@@ -303,16 +303,42 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                                             </div>
                                             <h4 className="font-bold text-slate-700 uppercase text-[11px] tracking-wider">Irritability (易激惹性 P1/P2)</h4>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        
+                                        {/* Row 1: Factors */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                             <div>
                                                 <Label>Aggravating Factors (P - Provocation)</Label>
-                                                <div className="mb-2"><ChipGroup multi variant="solid" options={AGGRAVATING_OPTIONS} value={entry.aggravating || []} onChange={v => updateVasEntry(idx, 'aggravating', v)} /></div>
-                                                <div className="flex items-center gap-2"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight whitespace-nowrap">Time to onset (P1):</span><Input value={entry.timeToOnset || ''} onChange={e => updateVasEntry(idx, 'timeToOnset', e.target.value)} placeholder="Ex: 10 mins walking..." className="bg-white h-8 text-xs font-medium" /></div>
+                                                <div className="mt-2"><ChipGroup multi variant="solid" options={AGGRAVATING_OPTIONS} value={entry.aggravating || []} onChange={v => updateVasEntry(idx, 'aggravating', v)} /></div>
                                             </div>
                                             <div>
                                                 <Label>Easing Factors (E - Palliation)</Label>
-                                                <div className="mb-2"><ChipGroup multi variant="solid" options={EASING_OPTIONS} value={entry.easing || []} onChange={v => updateVasEntry(idx, 'easing', v)} /></div>
-                                                <div className="flex items-center gap-2"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight whitespace-nowrap">Time to subside (Base):</span><Input value={entry.timeToSubside || ''} onChange={e => updateVasEntry(idx, 'timeToSubside', e.target.value)} placeholder="Ex: Immediate, 1 hour..." className="bg-white h-8 text-xs font-medium" /></div>
+                                                <div className="mt-2"><ChipGroup multi variant="solid" options={EASING_OPTIONS} value={entry.easing || []} onChange={v => updateVasEntry(idx, 'easing', v)} /></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 2: Timing (P1 & Base) - Side by Side */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex justify-between items-center">
+                                                    <Label>Time to onset (P1)</Label>
+                                                </div>
+                                                <Input 
+                                                    value={entry.timeToOnset || ''} 
+                                                    onChange={e => updateVasEntry(idx, 'timeToOnset', e.target.value)} 
+                                                    placeholder="Ex: 10 mins walking..." 
+                                                    className="bg-white border-slate-200 focus:border-red-300 focus:ring-red-100 h-10" 
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex justify-between items-center">
+                                                    <Label>Time to subside (Base)</Label>
+                                                </div>
+                                                <Input 
+                                                    value={entry.timeToSubside || ''} 
+                                                    onChange={e => updateVasEntry(idx, 'timeToSubside', e.target.value)} 
+                                                    placeholder="Ex: Immediate, 1 hour..." 
+                                                    className="bg-white border-slate-200 focus:border-green-300 focus:ring-green-100 h-10" 
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -337,7 +363,7 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                     <button onClick={scrollToTop} className="text-slate-400 hover:text-slate-600 text-xs font-bold bg-slate-50 px-4 py-2 rounded-full transition-colors">↑ 回到頂部</button>
                 </div>
                 <div className="flex justify-end order-1 md:order-none">
-                    <Button onClick={() => goNext()} variant="secondary" className="!bg-slate-900 !text-white !border-slate-900 hover:!bg-slate-800 px-6 font-bold w-full md:w-auto shadow-md">Next: Objective {'>'}</Button>
+                    <Button onClick={() => goNext()} variant="secondary" className="!bg-[#0f172a] !text-white !border-[#0f172a] hover:!bg-slate-800 px-6 font-bold w-full md:w-auto shadow-md">Next: Objective {'>'}</Button>
                 </div>
             </div>
         </div>
