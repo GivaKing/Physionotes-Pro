@@ -143,11 +143,11 @@ export const Auth = () => {
             <div className="animate-[slide-down_0.3s_ease-out] space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                        <Label>姓名</Label>
-                        <Input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="王大明" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
+                        <Label>Name</Label>
+                        <Input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="真實姓名" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
                     </div>
                     <div className="space-y-1.5">
-                        <Label>職稱</Label>
+                        <Label>Job</Label>
                         <Input type="text" value={job} onChange={e => setJob(e.target.value)} placeholder="物理治療師" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
                     </div>
                 </div>
