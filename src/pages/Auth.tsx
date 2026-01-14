@@ -169,7 +169,7 @@ export const Auth = () => {
                             onClick={() => { setIsForgot(true); setError(''); setSuccessMsg(''); }}
                             className="text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors"
                         >
-                            忘記密碼？
+                            Forgot password?
                         </button>
                     </div>
                 )}
