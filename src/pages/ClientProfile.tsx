@@ -182,12 +182,12 @@ export const ClientProfile = ({ onNavigate }: { onNavigate?: (tab: string) => vo
             colorClass="bg-blue-500"
         >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div><Label>姓名</Label><Input value={form.name} onChange={e => update('name', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-blue-200 rounded-2xl" /></div>
+                <div><Label>姓名</Label><Input value={form.name} onChange={e => update('name', e.target.value)} placeholder="真實姓名 (健保卡)" className="bg-slate-50 border-transparent focus:bg-white focus:border-blue-200 rounded-2xl" /></div>
                 <div><Label>生日 (Age: {calculateAge(form.dob)})</Label><Input type="date" value={form.dob} onChange={e => update('dob', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-blue-200 rounded-2xl" /></div>
                 <div><Label>性別</Label><select className="w-full px-4 py-2.5 rounded-2xl border border-transparent bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all appearance-none font-bold" value={form.gender} onChange={e => update('gender', e.target.value)}><option value="">請選擇</option><option value="男">男</option><option value="女">女</option><option value="其他">其他</option></select></div>
-                <div><Label>職業</Label><Input value={form.job} onChange={e => update('job', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-blue-200 rounded-2xl" /></div>
-                <div><Label>聯絡電話</Label><Input value={form.phone || ''} onChange={e => update('phone', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-blue-200 rounded-2xl" /></div>
-                <div><Label>電子郵件</Label><Input value={form.email || ''} onChange={e => update('email', e.target.value)} placeholder="example@mail.com" className="bg-slate-50 border-transparent focus:bg-white focus:border-blue-200 rounded-2xl" /></div>
+                <div><Label>職業</Label><Input value={form.job} onChange={e => update('job', e.target.value)} placeholder="工程師, 搬運工, 學生..." className="bg-slate-50 border-transparent focus:bg-white focus:border-blue-200 rounded-2xl" /></div>
+                <div><Label>聯絡電話</Label><Input value={form.phone || ''} onChange={e => update('phone', e.target.value)} placeholder="09xx-xxx-xxx" className="bg-slate-50 border-transparent focus:bg-white focus:border-blue-200 rounded-2xl" /></div>
+                <div><Label>電子郵件</Label><Input value={form.email || ''} onChange={e => update('email', e.target.value)} placeholder="name@domain.com" className="bg-slate-50 border-transparent focus:bg-white focus:border-blue-200 rounded-2xl" /></div>
             </div>
         </SectionContainer>
 
@@ -199,19 +199,19 @@ export const ClientProfile = ({ onNavigate }: { onNavigate?: (tab: string) => vo
         >
             <div className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="lg:col-span-2"><Label>主要問題 (Chief Complaint)</Label><TextArea value={form.chiefComplaint} onChange={e => update('chiefComplaint', e.target.value)} className="h-24 bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl"/></div>
-                    <div className="lg:col-span-2"><Label>醫師診斷 (Medical Diagnosis)</Label><TextArea value={form.diagnosis || ''} onChange={e => update('diagnosis', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
+                    <div className="lg:col-span-2"><Label>主要問題 (Chief Complaint)</Label><TextArea value={form.chiefComplaint} onChange={e => update('chiefComplaint', e.target.value)} placeholder="主要疼痛部位、動作受限描述、困擾時間..." className="h-24 bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl"/></div>
+                    <div className="lg:col-span-2"><Label>醫師診斷 (Medical Diagnosis)</Label><TextArea value={form.diagnosis || ''} onChange={e => update('diagnosis', e.target.value)} placeholder="診斷證明書病名、ICD-10 代碼..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-100">
-                    <div><Label>現病史 (Present History)</Label><TextArea value={form.presentHistory} onChange={e => update('presentHistory', e.target.value)} placeholder="症狀演變過程..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl h-32"/></div>
-                    <div><Label>過去病史 (Past History)</Label><TextArea value={form.pastHistory || ''} onChange={e => update('pastHistory', e.target.value)} placeholder="以前發生過類似問題? 復發頻率?" className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl h-32"/></div>
+                    <div><Label>現病史 (Present History)</Label><TextArea value={form.presentHistory} onChange={e => update('presentHistory', e.target.value)} placeholder="起因 (創傷/無)、發作時間、症狀變化 (變好/變壞)、已做過的處置..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl h-32"/></div>
+                    <div><Label>過去病史 (Past History)</Label><TextArea value={form.pastHistory || ''} onChange={e => update('pastHistory', e.target.value)} placeholder="既往舊傷、類似發作經驗、復發頻率..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl h-32"/></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><Label>系統性疾病</Label><Input value={form.diseases} onChange={e => update('diseases', e.target.value)} placeholder="高血壓, 糖尿病..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
-                    <div><Label>家族病史</Label><Input value={form.familyHistory || ''} onChange={e => update('familyHistory', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
-                    <div><Label>手術與外傷史</Label><Input value={form.surgery} onChange={e => update('surgery', e.target.value)} placeholder="骨折, 手術年份..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl"/></div>
-                    <div><Label>藥物使用</Label><Input value={form.meds} onChange={e => update('meds', e.target.value)} placeholder="止痛藥..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
-                    <div className="md:col-span-2"><Label>影像檢查</Label><Input value={form.specialInvestigation} onChange={e => update('specialInvestigation', e.target.value)} placeholder="X-ray, MRI..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
+                    <div><Label>系統性疾病</Label><Input value={form.diseases} onChange={e => update('diseases', e.target.value)} placeholder="高血壓, 糖尿病, 心臟病..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
+                    <div><Label>家族病史</Label><Input value={form.familyHistory || ''} onChange={e => update('familyHistory', e.target.value)} placeholder="遺傳疾病, 關節炎..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
+                    <div><Label>手術與外傷史</Label><Input value={form.surgery} onChange={e => update('surgery', e.target.value)} placeholder="手術名稱 (年份), 骨折/鋼釘植入..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl"/></div>
+                    <div><Label>藥物使用</Label><Input value={form.meds} onChange={e => update('meds', e.target.value)} placeholder="止痛藥, 肌肉鬆弛劑, 抗凝血劑..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
+                    <div className="md:col-span-2"><Label>影像檢查</Label><Input value={form.specialInvestigation} onChange={e => update('specialInvestigation', e.target.value)} placeholder="X-ray (骨折/退化), MRI (軟組織/椎間盤)..." className="bg-slate-50 border-transparent focus:bg-white focus:border-purple-200 rounded-2xl" /></div>
                 </div>
             </div>
         </SectionContainer>
@@ -224,13 +224,14 @@ export const ClientProfile = ({ onNavigate }: { onNavigate?: (tab: string) => vo
         >
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="md:col-span-2"><Label>一般健康狀況</Label><Input value={form.generalHealth || ''} onChange={e => update('generalHealth', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl"/></div>
-                    <div><Label>體能狀況</Label><Input value={form.fitness || ''} onChange={e => update('fitness', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl"/></div>
-                    <div><Label>吸菸 / 飲酒習慣</Label><div className="flex gap-2"><Input value={form.smoking || ''} onChange={e => update('smoking', e.target.value)} placeholder="吸菸" className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl"/><Input value={form.alcohol || ''} onChange={e => update('alcohol', e.target.value)} placeholder="飲酒" className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl"/></div></div>
+                    <div className="md:col-span-2"><Label>一般健康狀況</Label><Input value={form.generalHealth || ''} onChange={e => update('generalHealth', e.target.value)} placeholder="睡眠品質, 營養狀況, 壓力指數..." className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl"/></div>
+                    <div className="md:col-span-2"><Label>體能與運動習慣</Label><Input value={form.fitness || ''} onChange={e => update('fitness', e.target.value)} placeholder="運動頻率, 強度, 項目..." className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl"/></div>
+                    <div><Label>吸菸習慣</Label><Input value={form.smoking || ''} onChange={e => update('smoking', e.target.value)} placeholder="無 / 每日x包 / 已戒菸x年" className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl"/></div>
+                    <div><Label>飲酒習慣</Label><Input value={form.alcohol || ''} onChange={e => update('alcohol', e.target.value)} placeholder="無 / 偶爾 / 每日小酌" className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl"/></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><Label>工作環境/人體工學</Label><Input value={form.ergonomics} onChange={e => update('ergonomics', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl" /></div>
-                    <div><Label>運動休閒</Label><Input value={form.sportLeisure} onChange={e => update('sportLeisure', e.target.value)} className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl" /></div>
+                    <div><Label>工作環境/人體工學</Label><Input value={form.ergonomics} onChange={e => update('ergonomics', e.target.value)} placeholder="久坐, 需搬重物, 雙螢幕..." className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl" /></div>
+                    <div><Label>運動休閒/嗜好</Label><Input value={form.sportLeisure} onChange={e => update('sportLeisure', e.target.value)} placeholder="登山, 園藝, 樂器演奏..." className="bg-slate-50 border-transparent focus:bg-white focus:border-emerald-200 rounded-2xl" /></div>
                 </div>
             </div>
         </SectionContainer>
@@ -242,10 +243,26 @@ export const ClientProfile = ({ onNavigate }: { onNavigate?: (tab: string) => vo
             colorClass="bg-teal-500"
         >
             <div className="space-y-6">
-                <div><Label>心理社會因子</Label><Input value={form.psychosocial} onChange={e => update('psychosocial', e.target.value)} placeholder="焦慮, 恐懼迴避..." className="bg-slate-50 border-transparent focus:bg-white focus:border-teal-200 rounded-2xl"/></div>
+                <div><Label>心理社會因子 (Psychosocial Factors)</Label><Input value={form.psychosocial} onChange={e => update('psychosocial', e.target.value)} placeholder="焦慮, 憂鬱, 恐懼迴避信念 (FABQ), 災難化思考..." className="bg-slate-50 border-transparent focus:bg-white focus:border-teal-200 rounded-2xl"/></div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><Label>個案期待</Label><TextArea value={form.expectation} onChange={e => update('expectation', e.target.value)} className="h-32 bg-slate-50 border-transparent focus:bg-white focus:border-teal-200 rounded-2xl"/></div>
-                    <div><Label>個案目標</Label><TextArea value={form.goals} onChange={e => update('goals', e.target.value)} className="h-32 bg-slate-50 border-transparent focus:bg-white focus:border-teal-200 rounded-2xl"/></div>
+                    <div>
+                        <Label>對治療的期待 (Expectations)</Label>
+                        <TextArea 
+                            value={form.expectation} 
+                            onChange={e => update('expectation', e.target.value)} 
+                            placeholder="希望能徒手治療? 害怕針灸? 預期多久會好? 只想學運動?" 
+                            className="h-32 bg-slate-50 border-transparent focus:bg-white focus:border-teal-200 rounded-2xl"
+                        />
+                    </div>
+                    <div>
+                        <Label>功能性目標/願景 (Functional Goals)</Label>
+                        <TextArea 
+                            value={form.goals} 
+                            onChange={e => update('goals', e.target.value)} 
+                            placeholder="具體生活目標 (e.g. 能夠跑馬拉松, 抱小孩不痛, 恢復全蹲, 能夠安穩睡覺)..." 
+                            className="h-32 bg-slate-50 border-transparent focus:bg-white focus:border-teal-200 rounded-2xl"
+                        />
+                    </div>
                 </div>
             </div>
         </SectionContainer>
