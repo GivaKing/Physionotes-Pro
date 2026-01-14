@@ -121,7 +121,9 @@ const DashboardContent = memo(({ data, isForExport = false }: { data: PatientCas
                         <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-2 flex items-center gap-2">
                              <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span> 主要問題 (Complaint)
                         </div>
-                        <div className="text-sm font-medium text-slate-600 leading-relaxed line-clamp-2">{form.chiefComplaint || '暫無主訴紀錄'}</div>
+                        <div className="text-sm font-medium text-slate-600 leading-relaxed line-clamp-2">
+                            {(lastRecord?.visit?.subjectiveNotes || form.chiefComplaint) || '暫無主訴紀錄'}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -176,6 +178,20 @@ export const ClientDashboard = () => {
   const reportPreviewRef = useRef<HTMLDivElement>(null);
 
   if (!activeCase) return null;
+
+  // --- Shared Filter Function to prevent "trim" error ---
+  // This excludes problematic nodes like scripts and stylesheets which often cause
+  // html-to-image to crash with "t is undefined" when cacheBust is involved or CORS fails.
+  const filterNode = (node: HTMLElement) => {
+    const tagName = (node.tagName || '').toUpperCase();
+    return (
+        tagName !== 'SCRIPT' &&
+        tagName !== 'STYLE' &&
+        tagName !== 'LINK' &&
+        tagName !== 'IFRAME' &&
+        !node.classList?.contains('no-print')
+    );
+  };
 
   // --- 1. Smart Slicing Algorithm (For High-Res PDF & Image) ---
   const findBestCutY = (
@@ -257,7 +273,8 @@ export const ClientDashboard = () => {
 
         // Generate Ultra-High-Res Source Canvas (3x for good image quality)
         const sourceCanvas = await toCanvas(reportPreviewRef.current, {
-            cacheBust: true,
+            cacheBust: false, // Fix: Disabled cacheBust to prevent CORS font errors
+            filter: filterNode, // Fix: Exclude script/link tags
             backgroundColor: '#ffffff',
             pixelRatio: 4, 
             style: {
@@ -355,7 +372,8 @@ export const ClientDashboard = () => {
         // 1. Generate Ultra-High-Res Source Canvas
         // pixelRatio 4 = 400 DPI equivalent (approx). Very high quality.
         const sourceCanvas = await toCanvas(reportPreviewRef.current, {
-            cacheBust: true,
+            cacheBust: false, // Fix: Disabled cacheBust to prevent CORS font errors
+            filter: filterNode, // Fix: Exclude script/link tags
             backgroundColor: '#ffffff',
             pixelRatio: 4, 
             style: {
@@ -451,16 +469,22 @@ export const ClientDashboard = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      const dataUrl = await toPng(dashboardPreviewRef.current, {
-        cacheBust: true,
+      // Replaced toPng with toCanvas + toDataURL to resolve "trim" error
+      // Added filters to exclude scripts/links which confuse html-to-image
+      const canvas = await toCanvas(dashboardPreviewRef.current, {
+        cacheBust: false, // Fix: Ensure disabled for Dashboard too
+        filter: filterNode, // Fix: Ensure filter is applied
         backgroundColor: '#ffffff',
         width: 1200, 
         pixelRatio: 4, 
         style: {
             fontVariant: 'normal',
             textRendering: 'geometricPrecision',
+            WebkitFontSmoothing: 'antialiased',
         } as any
       });
+      
+      const dataUrl = canvas.toDataURL('image/png');
       
       const link = document.createElement('a');
       link.download = `Dashboard_${activeCase.client.name}_${new Date().toISOString().split('T')[0]}.png`;
@@ -511,9 +535,25 @@ export const ClientDashboard = () => {
                 </div>
                 <div className="flex gap-3 w-full sm:w-auto">
                     <Button variant="ghost" className="flex-1 sm:flex-initial text-white hover:bg-white/10 px-6 font-bold" onClick={() => setIsPreviewOpen(false)} disabled={isExporting}>取消</Button>
-                    <Button variant="primary" className="flex-[2] sm:flex-initial px-10 bg-indigo-500 hover:bg-indigo-600 shadow-2xl font-black" onClick={handleExportPng} disabled={isExporting}>
-                        {isExporting ? '處理中...' : '確認下載圖片'}
-                    </Button>
+                    
+                    {/* Updated Export Button: Text changed to "下載圖片" */}
+                    <button 
+                        onClick={handleExportPng}
+                        disabled={isExporting}
+                        className="px-6 py-2.5 rounded-full font-black text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 disabled:opacity-70 disabled:cursor-wait"
+                    >
+                        {isExporting ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                處理中...
+                            </>
+                        ) : (
+                            <>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                下載圖片
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
             <div className="w-full max-w-[1240px] flex-1 overflow-auto rounded-3xl shadow-2xl bg-white p-6 sm:p-12 no-scrollbar border border-white/10">
