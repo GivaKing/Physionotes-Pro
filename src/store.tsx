@@ -9,10 +9,14 @@ interface AppState {
   loading: boolean;
   activeCase: PatientCase | null;
   cases: PatientCase[];
+  isRecoveryMode: boolean; // Check if user is in password recovery flow
   // Actions
   login: (email: string, pass: string) => Promise<any>;
   signup: (email: string, pass: string, meta: any) => Promise<any>;
   logout: () => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
+  updateUserPassword: (newPass: string) => Promise<void>;
+  updateUserProfile: (data: { name: string; job: string }) => Promise<void>;
   loadCases: () => Promise<void>;
   createCase: (clientData: ClientData) => Promise<string>;
   updateClient: (id: string, clientData: ClientData) => Promise<void>; 
@@ -31,6 +35,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [loading, setLoading] = useState(true);
   const [cases, setCases] = useState<PatientCase[]>([]);
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -45,6 +50,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCases([]);
         setActiveCaseId(null);
         setLoading(false);
+      } else if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoveryMode(true);
       }
     });
     return () => {
@@ -54,8 +61,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const checkUser = async () => {
     try {
-      // 1. Safety Timeout: If Supabase doesn't respond in 2 seconds, stop loading to prevent infinite hang.
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), 3000));
+      // 1. Safety Timeout: Increased to 5000ms.
+      // Crucial Fix: Instead of rejecting (which causes an error), we resolve with null session.
+      // This allows the app to fallback to the Login screen gracefully if the network is slow.
+      const timeoutPromise = new Promise((resolve) => 
+        setTimeout(() => resolve({ data: { session: null }, error: null }), 5000)
+      );
+      
       const sessionPromise = (supabase.auth as any).getSession();
 
       const { data: { session }, error: sessionError } = await Promise.race([sessionPromise, timeoutPromise]) as any;
@@ -185,6 +197,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return data;
   };
 
+  const resetPasswordForEmail = async (email: string) => {
+      const { error } = await (supabase.auth as any).resetPasswordForEmail(email, {
+          redirectTo: window.location.origin, // Important: Redirect back to this app
+      });
+      if (error) throw error;
+  };
+
+  const updateUserPassword = async (newPass: string) => {
+      const { error } = await (supabase.auth as any).updateUser({ password: newPass });
+      if (error) throw error;
+      setIsRecoveryMode(false); // Exit recovery mode
+  };
+
+  const updateUserProfile = async (data: { name: string; job: string }) => {
+      if (!user) throw new Error("Not logged in");
+      
+      const { error } = await supabase
+          .from('profiles')
+          .update({ name: data.name, job: data.job })
+          .eq('user_id', user.id);
+          
+      if (error) throw error;
+      
+      // Update local state optimistically
+      setUser({ ...user, name: data.name, job: data.job });
+  };
+
   const logout = async () => {
     try {
         await (supabase.auth as any).signOut();
@@ -269,9 +308,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{
-      user, loading, activeCase, cases,
+      user, loading, activeCase, cases, isRecoveryMode,
       login, signup, logout, loadCases: () => loadCasesInternal(user?.id || ''),
-      createCase, updateClient, saveVisit, updateVisit, deleteVisit, setActiveCaseId, deleteCase, importCases
+      createCase, updateClient, saveVisit, updateVisit, deleteVisit, setActiveCaseId, deleteCase, importCases,
+      resetPasswordForEmail, updateUserPassword, updateUserProfile
     }}>
       {children}
     </AppContext.Provider>
