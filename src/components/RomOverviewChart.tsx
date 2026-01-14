@@ -14,7 +14,7 @@ export const RomOverviewChart = ({ records, initialComplaint }: { records: CaseR
 
   useEffect(() => {
     if (initialComplaint) {
-        const text = initialComplaint.toLowerCase();
+        const text = (initialComplaint || '').toLowerCase();
         if (text.includes('shoulder') || text.includes('肩')) setSelectedJoint('Shoulder (肩膀)');
         else if (text.includes('knee') || text.includes('膝')) setSelectedJoint('Knee (膝蓋)');
         else if (text.includes('hip') || text.includes('髖')) setSelectedJoint('Hip (髖關節)');
