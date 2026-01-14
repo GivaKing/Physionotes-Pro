@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button, Label, TextArea, Input, ChipGroup } from '../../components/Input';
 import { ListIconSet, insertAtCursorHelper, toggleListFormatHelper } from '../../components/EvalShared';
@@ -35,12 +36,15 @@ export const PlanSection: React.FC<PlanProps> = ({ tData, setTData, handleSave, 
                 <div className="p-4 space-y-6">
                     {/* Treatment Plan */}
                     <div className="space-y-2">
+                        {/* Updated Header: Flex-col on mobile, right-aligned tools */}
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2">
                             <Label>治療項目 (Clinic Treatment)</Label>
-                            <ListIconSet 
-                                onNumberClick={() => toggleListFormatHelper('treatment-plan-input', 'number', tData.treatmentPlan, (val) => setTData({...tData, treatmentPlan: val}))}
-                                onBulletClick={() => toggleListFormatHelper('treatment-plan-input', 'bullet', tData.treatmentPlan, (val) => setTData({...tData, treatmentPlan: val}))}
-                            />
+                            <div className="self-end sm:self-auto">
+                                <ListIconSet 
+                                    onNumberClick={() => toggleListFormatHelper('treatment-plan-input', 'number', tData.treatmentPlan, (val) => setTData({...tData, treatmentPlan: val}))}
+                                    onBulletClick={() => toggleListFormatHelper('treatment-plan-input', 'bullet', tData.treatmentPlan, (val) => setTData({...tData, treatmentPlan: val}))}
+                                />
+                            </div>
                         </div>
                         
                         <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-300 transition-all">
@@ -72,12 +76,15 @@ export const PlanSection: React.FC<PlanProps> = ({ tData, setTData, handleSave, 
 
                     {/* Home Exercise */}
                     <div className="space-y-2">
-                        <div className="flex justify-between items-center">
+                        {/* Updated Header: Flex-col on mobile, right-aligned tools */}
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2">
                              <Label>居家運動 (Home Exercise)</Label>
-                            <ListIconSet 
-                                onNumberClick={() => toggleListFormatHelper('home-ex-input', 'number', tData.homeEx, (val) => setTData({...tData, homeEx: val}))}
-                                onBulletClick={() => toggleListFormatHelper('home-ex-input', 'bullet', tData.homeEx, (val) => setTData({...tData, homeEx: val}))}
-                            />
+                             <div className="self-end sm:self-auto">
+                                <ListIconSet 
+                                    onNumberClick={() => toggleListFormatHelper('home-ex-input', 'number', tData.homeEx, (val) => setTData({...tData, homeEx: val}))}
+                                    onBulletClick={() => toggleListFormatHelper('home-ex-input', 'bullet', tData.homeEx, (val) => setTData({...tData, homeEx: val}))}
+                                />
+                            </div>
                         </div>
                         <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-300 transition-all">
                             <TextArea 
