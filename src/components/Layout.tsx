@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../store';
 import { Button, Input, Label } from './Input';
 
@@ -9,10 +10,24 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
-  const { user, logout, cases } = useApp();
+  const { user, logout, cases, updateUserProfile } = useApp();
   const [showUserModal, setShowUserModal] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // User Edit State
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editJob, setEditJob] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  useEffect(() => {
+      if (showUserModal && user) {
+          setEditName(user.name || '');
+          setEditJob(user.job || '');
+          setIsEditingProfile(false);
+      }
+  }, [showUserModal, user]);
 
   const menuItems = [
     { 
@@ -56,6 +71,18 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
   const handleTabClick = (id: string) => {
     onTabChange(id);
     setIsMobileMenuOpen(false);
+  };
+
+  const handleSaveProfile = async () => {
+      setIsSavingProfile(true);
+      try {
+          await updateUserProfile({ name: editName, job: editJob });
+          setIsEditingProfile(false);
+      } catch (e: any) {
+          alert('更新失敗: ' + e.message);
+      } finally {
+          setIsSavingProfile(false);
+      }
   };
 
   const getRoleDisplay = (role?: string) => {
@@ -236,13 +263,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
         <div 
             className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
             onClick={(e) => {
-                if(e.target === e.currentTarget) setShowUserModal(false);
+                if(e.target === e.currentTarget && !isSavingProfile) setShowUserModal(false);
             }}
         >
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-[scale-in_0.2s_ease-out] relative border border-white/20">
             <button 
                 onClick={() => setShowUserModal(false)} 
                 className="absolute top-5 right-5 text-slate-400 hover:text-slate-800 p-2 z-10 transition-colors"
+                disabled={isSavingProfile}
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -252,8 +280,28 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                  {user?.name?.[0]}
                </div>
                
-               <h3 className="text-2xl font-black text-slate-800 tracking-tight">{user?.name}</h3>
-               <p className="text-slate-400 text-sm font-bold mt-1">{user?.email}</p>
+               {isEditingProfile ? (
+                   <div className="w-full space-y-3 mb-2 animate-fade-in">
+                       <Input 
+                           value={editName} 
+                           onChange={e => setEditName(e.target.value)} 
+                           placeholder="姓名"
+                           className="text-center font-bold text-lg"
+                       />
+                       <Input 
+                           value={editJob} 
+                           onChange={e => setEditJob(e.target.value)} 
+                           placeholder="職稱"
+                           className="text-center text-sm"
+                       />
+                   </div>
+               ) : (
+                   <>
+                       <h3 className="text-2xl font-black text-slate-800 tracking-tight">{user?.name}</h3>
+                       <p className="text-slate-400 text-sm font-bold mt-1">{user?.email}</p>
+                   </>
+               )}
+
                <span className="mt-4 px-4 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-black rounded-full uppercase tracking-widest border border-slate-200">
                    {getRoleDisplay(user?.role)}
                </span>
@@ -271,15 +319,30 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                   </div>
                </div>
                
-               <div className="space-y-4">
-                   <div>
-                       <Label>Job Title</Label>
-                       <Input defaultValue={user?.job} disabled className="bg-slate-50 text-slate-600 border-transparent font-bold" />
+               {/* Read-Only Mode: Job Title Display */}
+               {!isEditingProfile && (
+                   <div className="space-y-4">
+                       <div>
+                           <Label>Job Title</Label>
+                           <Input defaultValue={user?.job} disabled className="bg-slate-50 text-slate-600 border-transparent font-bold" />
+                       </div>
                    </div>
-               </div>
+               )}
 
-               <div className="pt-2">
-                 <Button variant="danger" className="w-full py-4 rounded-[1.5rem] font-bold text-sm" onClick={handleLogout}>Sign Out</Button>
+               <div className="pt-2 flex gap-3">
+                 {isEditingProfile ? (
+                     <>
+                        <Button variant="secondary" className="flex-1" onClick={() => setIsEditingProfile(false)} disabled={isSavingProfile}>取消</Button>
+                        <Button variant="primary" className="flex-1 bg-slate-900" onClick={handleSaveProfile} disabled={isSavingProfile}>
+                            {isSavingProfile ? '儲存中...' : '儲存變更'}
+                        </Button>
+                     </>
+                 ) : (
+                     <>
+                        <Button variant="secondary" className="flex-1" onClick={() => setIsEditingProfile(true)}>編輯資料</Button>
+                        <Button variant="danger" className="flex-1" onClick={handleLogout}>登出</Button>
+                     </>
+                 )}
                </div>
             </div>
           </div>
