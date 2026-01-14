@@ -226,16 +226,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = async () => {
     try {
-        await (supabase.auth as any).signOut();
+        // Attempt to sign out from Supabase
+        // Even if this fails (e.g., token invalid after password change), we MUST clear local state
+        const { error } = await (supabase.auth as any).signOut();
+        if (error) {
+            console.warn("Supabase signOut warning:", error.message);
+        }
     } catch (error) {
         console.error("Logout API error:", error);
     } finally {
-        localStorage.clear();
+        // FORCE Cleanup
+        localStorage.clear(); // Remove tokens
+        sessionStorage.clear();
         setUser(null);
         setCases([]);
         setActiveCaseId(null);
-        // Ensure loading is false after logout
+        setIsRecoveryMode(false);
         setLoading(false);
+        // In extreme cases, one might use window.location.reload() here, but React state reset should suffice.
     }
   };
 
