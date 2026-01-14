@@ -270,7 +270,13 @@ export const SubjectiveSection: React.FC<SubjectiveProps> = ({ visit, setVisit, 
                                                 <Label>Depth (深度)</Label>
                                                 <div className="flex gap-2">
                                                     {['Superficial (表層)', 'Deep (深層)'].map(opt => (
-                                                        <button key={opt} onClick={() => updateVasEntry(idx, 'depth', opt)} className={`flex-1 py-1.5 rounded text-xs border font-bold transition-all ${entry.depth === opt ? 'bg-slate-700 text-white border-slate-700 shadow-md' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>{opt}</button>
+                                                        <button 
+                                                            key={opt} 
+                                                            onClick={() => updateVasEntry(idx, 'depth', entry.depth === opt ? '' : opt)} 
+                                                            className={`flex-1 py-1.5 rounded text-xs border font-bold transition-all ${entry.depth === opt ? 'bg-slate-700 text-white border-slate-700 shadow-md' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+                                                        >
+                                                            {opt}
+                                                        </button>
                                                     ))}
                                                 </div>
                                             </div>
