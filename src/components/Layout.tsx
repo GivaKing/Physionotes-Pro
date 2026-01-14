@@ -9,23 +9,34 @@ interface LayoutProps {
   onTabChange: (tab: string) => void;
 }
 
+// Define the view state for the modal
+type UserModalView = 'info' | 'edit-profile' | 'change-password';
+
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
-  const { user, logout, cases, updateUserProfile } = useApp();
+  const { user, logout, cases, updateUserProfile, updateUserPassword } = useApp();
   const [showUserModal, setShowUserModal] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // User Edit State
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  // User Modal State
+  const [modalView, setModalView] = useState<UserModalView>('info');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Profile Edit
   const [editName, setEditName] = useState('');
   const [editJob, setEditJob] = useState('');
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  // Password Change
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
       if (showUserModal && user) {
           setEditName(user.name || '');
           setEditJob(user.job || '');
-          setIsEditingProfile(false);
+          setModalView('info'); // Reset to info on open
+          setNewPassword('');
+          setConfirmPassword('');
       }
   }, [showUserModal, user]);
 
@@ -74,14 +85,38 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
   };
 
   const handleSaveProfile = async () => {
-      setIsSavingProfile(true);
+      setIsLoading(true);
       try {
           await updateUserProfile({ name: editName, job: editJob });
-          setIsEditingProfile(false);
+          setModalView('info');
       } catch (e: any) {
           alert('更新失敗: ' + e.message);
       } finally {
-          setIsSavingProfile(false);
+          setIsLoading(false);
+      }
+  };
+
+  const handleChangePassword = async () => {
+      if (newPassword.length < 6) {
+          alert('密碼長度需至少 6 個字元');
+          return;
+      }
+      if (newPassword !== confirmPassword) {
+          alert('兩次輸入的密碼不相符');
+          return;
+      }
+
+      setIsLoading(true);
+      try {
+          await updateUserPassword(newPassword);
+          alert('密碼修改成功！');
+          setModalView('info');
+          setNewPassword('');
+          setConfirmPassword('');
+      } catch (e: any) {
+          alert('修改失敗: ' + e.message);
+      } finally {
+          setIsLoading(false);
       }
   };
 
@@ -263,14 +298,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
         <div 
             className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
             onClick={(e) => {
-                if(e.target === e.currentTarget && !isSavingProfile) setShowUserModal(false);
+                if(e.target === e.currentTarget && !isLoading) setShowUserModal(false);
             }}
         >
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden animate-[scale-in_0.2s_ease-out] relative border border-white/20">
             <button 
                 onClick={() => setShowUserModal(false)} 
                 className="absolute top-5 right-5 text-slate-400 hover:text-slate-800 p-2 z-10 transition-colors"
-                disabled={isSavingProfile}
+                disabled={isLoading}
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -280,7 +315,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                  {user?.name?.[0]}
                </div>
                
-               {isEditingProfile ? (
+               {modalView === 'edit-profile' ? (
                    <div className="w-full space-y-3 mb-2 animate-fade-in">
                        <Input 
                            value={editName} 
@@ -293,6 +328,24 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                            onChange={e => setEditJob(e.target.value)} 
                            placeholder="職稱"
                            className="text-center text-sm"
+                       />
+                   </div>
+               ) : modalView === 'change-password' ? (
+                   <div className="w-full space-y-2 mb-2 animate-fade-in">
+                       <h3 className="text-lg font-black text-slate-800 text-center mb-2">修改密碼</h3>
+                       <Input 
+                           type="password"
+                           value={newPassword} 
+                           onChange={e => setNewPassword(e.target.value)} 
+                           placeholder="新密碼 (6位以上)"
+                           className="text-center"
+                       />
+                       <Input 
+                           type="password"
+                           value={confirmPassword} 
+                           onChange={e => setConfirmPassword(e.target.value)} 
+                           placeholder="確認新密碼"
+                           className="text-center"
                        />
                    </div>
                ) : (
@@ -308,19 +361,22 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
             </div>
 
             <div className="px-8 pb-8 space-y-6">
-               <div className="grid grid-cols-2 gap-4 text-center">
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-slate-200 transition-colors">
-                    <div className="text-2xl font-black text-slate-900 group-hover:scale-110 transition-transform">{cases.length}</div>
-                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-wider mt-1">Active Cases</div>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-slate-200 transition-colors">
-                    <div className="text-2xl font-black text-slate-900 group-hover:scale-110 transition-transform">{maxPatients > 9999 ? '∞' : maxPatients}</div>
-                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-wider mt-1">Plan Limit</div>
-                  </div>
-               </div>
+               {/* Stats (Hide in Change Password Mode for cleaner look) */}
+               {modalView !== 'change-password' && (
+                   <div className="grid grid-cols-2 gap-4 text-center">
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-slate-200 transition-colors">
+                        <div className="text-2xl font-black text-slate-900 group-hover:scale-110 transition-transform">{cases.length}</div>
+                        <div className="text-[10px] text-slate-400 font-black uppercase tracking-wider mt-1">Active Cases</div>
+                      </div>
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-slate-200 transition-colors">
+                        <div className="text-2xl font-black text-slate-900 group-hover:scale-110 transition-transform">{maxPatients > 9999 ? '∞' : maxPatients}</div>
+                        <div className="text-[10px] text-slate-400 font-black uppercase tracking-wider mt-1">Plan Limit</div>
+                      </div>
+                   </div>
+               )}
                
                {/* Read-Only Mode: Job Title Display */}
-               {!isEditingProfile && (
+               {modalView === 'info' && (
                    <div className="space-y-4">
                        <div>
                            <Label>Job Title</Label>
@@ -329,18 +385,28 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                    </div>
                )}
 
-               <div className="pt-2 flex gap-3">
-                 {isEditingProfile ? (
-                     <>
-                        <Button variant="secondary" className="flex-1" onClick={() => setIsEditingProfile(false)} disabled={isSavingProfile}>取消</Button>
-                        <Button variant="primary" className="flex-1 bg-slate-900" onClick={handleSaveProfile} disabled={isSavingProfile}>
-                            {isSavingProfile ? '儲存中...' : '儲存變更'}
+               <div className="pt-2 flex flex-col gap-3">
+                 {modalView === 'edit-profile' ? (
+                     <div className="flex gap-3">
+                        <Button variant="secondary" className="flex-1" onClick={() => setModalView('info')} disabled={isLoading}>取消</Button>
+                        <Button variant="primary" className="flex-1 bg-slate-900" onClick={handleSaveProfile} disabled={isLoading}>
+                            {isLoading ? '儲存中...' : '儲存變更'}
                         </Button>
-                     </>
+                     </div>
+                 ) : modalView === 'change-password' ? (
+                     <div className="flex gap-3">
+                        <Button variant="secondary" className="flex-1" onClick={() => setModalView('info')} disabled={isLoading}>取消</Button>
+                        <Button variant="primary" className="flex-1 bg-slate-900" onClick={handleChangePassword} disabled={isLoading}>
+                            {isLoading ? '更新中...' : '確認修改'}
+                        </Button>
+                     </div>
                  ) : (
                      <>
-                        <Button variant="secondary" className="flex-1" onClick={() => setIsEditingProfile(true)}>編輯資料</Button>
-                        <Button variant="danger" className="flex-1" onClick={handleLogout}>登出</Button>
+                        <div className="flex gap-3">
+                            <Button variant="secondary" className="flex-1" onClick={() => setModalView('edit-profile')}>編輯資料</Button>
+                            <Button variant="secondary" className="flex-1" onClick={() => setModalView('change-password')}>更改密碼</Button>
+                        </div>
+                        <Button variant="danger" className="w-full" onClick={handleLogout}>登出</Button>
                      </>
                  )}
                </div>
