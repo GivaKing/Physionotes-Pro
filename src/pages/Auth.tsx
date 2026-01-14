@@ -144,7 +144,7 @@ export const Auth = () => {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                         <Label>姓名</Label>
-                        <Input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="真實姓名" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
+                        <Input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="王大明" className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-2xl" />
                     </div>
                     <div className="space-y-1.5">
                         <Label>職稱</Label>
