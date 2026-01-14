@@ -138,7 +138,24 @@ export const Auth = () => {
           {/* Password Field - Hidden in Forgot Mode */}
           {!isForgot && (
               <div className="space-y-1.5 relative animate-fade-in">
-                <Label>Password</Label>
+                {/* 
+                   Forgot Password Link:
+                   - Moved inside a flex container with Label for perfect vertical alignment.
+                   - 'items-baseline' ensures text aligns properly.
+                */}
+                <div className="flex justify-between items-baseline">
+                    <Label>Password</Label>
+                    {isLogin && (
+                        <button 
+                            type="button" 
+                            onClick={() => { setIsForgot(true); setError(''); setSuccessMsg(''); }}
+                            className="text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors mr-1 mb-1.5"
+                        >
+                            Forgot password?
+                        </button>
+                    )}
+                </div>
+                
                 <div className="relative">
                     <Input 
                         type={showPass ? 'text' : 'password'} 
@@ -162,17 +179,6 @@ export const Auth = () => {
                         )}
                     </button>
                 </div>
-                {isLogin && (
-                    <div className="flex justify-end pt-1">
-                        <button 
-                            type="button" 
-                            onClick={() => { setIsForgot(true); setError(''); setSuccessMsg(''); }}
-                            className="text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors"
-                        >
-                            Forgot password?
-                        </button>
-                    </div>
-                )}
               </div>
           )}
           
